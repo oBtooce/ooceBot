@@ -88,7 +88,7 @@ class Program
     private void RefreshOAuthToken(HttpClient client)
     {
         // Build the POST content
-        string jsonData = "{ \"client_id\", \"" +  + "\" }";
+        string jsonData = "{ \"client_id\": \"" + BotVariables.ClientID + "\", \"client_secret\": \"" + BotVariables.ClientSecret + "\", \"grant_type\": \"refresh_token\", \"refresh_token\": \"" + BotVariables.OAuthRefreshToken + "\" }";
         HttpContent requestContent = new StringContent(jsonData, System.Text.Encoding.UTF8, "application/json");
     }
 }
