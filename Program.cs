@@ -8,10 +8,11 @@ using TwitchLib.Communication.Clients;
 using TwitchLib.Communication.Models;
 using ooceBot;
 using System.Net.Http;
+using System.Text.Json;
 
 class Program
 {
-    private static TwitchClient client;
+    private static TwitchClient client { get; set; }
 
     static void Main(string[] args)
     {
@@ -26,7 +27,7 @@ class Program
         };
 
         // Verify token authenticity and refresh if needed
-        RefreshOAuthToken(BotVariables.OAuthRefreshToken, apiCallClient);
+        RefreshOAuthToken(apiCallClient);
 
         // Set up client
         ConnectionCredentials credentials = new ConnectionCredentials(botUsername, oauthToken);
@@ -37,7 +38,7 @@ class Program
         };
 
         var customClient = new WebSocketClient(clientOptions);
-        var client = new TwitchClient(customClient);
+        client = new TwitchClient(customClient);
         client.Initialize(credentials);
 
         client.OnConnected += Client_OnConnected;
@@ -85,10 +86,28 @@ class Program
         }
     }
 
-    private void RefreshOAuthToken(HttpClient client)
+    private static async void RefreshOAuthToken(HttpClient client)
     {
         // Build the POST content
-        string jsonData = "{ \"client_id\": \"" + BotVariables.ClientID + "\", \"client_secret\": \"" + BotVariables.ClientSecret + "\", \"grant_type\": \"refresh_token\", \"refresh_token\": \"" + BotVariables.OAuthRefreshToken + "\" }";
-        HttpContent requestContent = new StringContent(jsonData, System.Text.Encoding.UTF8, "application/json");
+        var formData = new Dictionary<string, string>
+        {
+            { "client_id", BotVariables.ClientID },
+            { "client_secret", BotVariables.ClientSecret },
+            { "grant_type", "refresh_token" },
+            { "refresh_token", BotVariables.OAuthRefreshToken }
+        };
+
+        HttpContent requestContent = new FormUrlEncodedContent(formData);
+
+        HttpResponseMessage response = await client.PostAsync(BotVariables.RefreshUri, requestContent);
+
+        if (response.IsSuccessStatusCode)
+        {
+            Console.WriteLine("Wow");
+        }
+        else
+        {
+            Console.WriteLine($"Error: {response.StatusCode}");
+        }
     }
 }
