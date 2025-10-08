@@ -14,11 +14,10 @@ class Program
 {
     private static TwitchClient client { get; set; }
 
-    static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         // Configuration
         string botUsername = BotVariables.BotUsername;
-        string oauthToken = BotVariables.OAuthToken;
         string channelToJoin = BotVariables.ChannelToJoin;
 
         HttpClient apiCallClient = new HttpClient()
@@ -27,7 +26,7 @@ class Program
         };
 
         // Verify token authenticity and refresh if needed
-        RefreshOAuthToken(apiCallClient);
+        var oauthToken = await RefreshOAuthToken(apiCallClient);
 
         // Set up client
         ConnectionCredentials credentials = new ConnectionCredentials(botUsername, oauthToken);
@@ -42,11 +41,7 @@ class Program
         client.Initialize(credentials);
 
         client.OnConnected += Client_OnConnected;
-
-        client.OnFailureToReceiveJoinConfirmation += (s, e) =>
-        {
-            Console.WriteLine("Failed to join channel!");
-        };
+        client.OnMessageReceived += Client_OnMessageReceived;
 
         client.OnError += (s, e) => Console.WriteLine("Error: " + e.Exception.Message);
 
@@ -61,6 +56,7 @@ class Program
 
     private static void Client_OnConnected(object sender, OnConnectedArgs e)
     {
+
         Console.WriteLine($"Connected to Twitch as {e.BotUsername}");
         client.JoinChannel(BotVariables.ChannelToJoin);
     }
@@ -73,7 +69,9 @@ class Program
 
     private static void Client_OnMessageReceived(object sender, OnMessageReceivedArgs e)
     {
-        switch (e.ChatMessage.Message.ToLower())
+        string[] commandParts = e.ChatMessage.Message.Split(" ");
+
+        switch (commandParts.First())
         {
             case "!hello":
                 client.SendMessage(e.ChatMessage.Channel, $"Hello {e.ChatMessage.Username}!");
@@ -81,12 +79,18 @@ class Program
             case "!lurk":
                 client.SendMessage(e.ChatMessage.Channel, $"{e.ChatMessage.Username}, your continued support is greatly appreciated. Talk to you soon!");
                 break;
+            case "!stats":
+                if (commandParts[1] != null)
+                    CommandMethods.GetChesscomStats(client, e, commandParts.Last());
+                else
+                    client.SendMessage(e.ChatMessage.Channel, $"Hmm...something went wrong. Make sure you are using a valid Chess.com username and try again with the following format: !stats (username)");
+                break;
             default:
                 break;
         }
     }
 
-    private static async void RefreshOAuthToken(HttpClient client)
+    private static async Task<string> RefreshOAuthToken(HttpClient client)
     {
         // Build the POST content
         var formData = new Dictionary<string, string>
@@ -103,11 +107,19 @@ class Program
 
         if (response.IsSuccessStatusCode)
         {
-            Console.WriteLine("Wow");
+            string responseBody = await response.Content.ReadAsStringAsync();
+            using (JsonDocument doc = JsonDocument.Parse(responseBody))
+            {
+                JsonElement root = doc.RootElement;
+
+                return $"oauth:{doc.RootElement.GetProperty("access_token")}";
+            }
         }
         else
         {
             Console.WriteLine($"Error: {response.StatusCode}");
+
+            return string.Empty;
         }
     }
 }
