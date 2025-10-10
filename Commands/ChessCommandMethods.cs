@@ -8,9 +8,9 @@ using TwitchLib.Api.Helix;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
 
-namespace ooceBot
+namespace ooceBot.Commands
 {
-    public static class CommandMethods
+    public static class ChessCommandMethods
     {
         public static async void AuditChatter(TwitchClient client, OnMessageReceivedArgs args, string username)
         {
@@ -58,7 +58,7 @@ namespace ooceBot
                     string rapidRating = root.GetProperty("chess_rapid").GetProperty("last").GetProperty("rating").ToString();
                     string blitzRating = root.GetProperty("chess_blitz").GetProperty("last").GetProperty("rating").ToString();
                     string bulletRating = root.GetProperty("chess_bullet").GetProperty("last").GetProperty("rating").ToString();
-                    
+
                     client.SendMessage(args.ChatMessage.Channel, $"Rapid: {rapidRating} | Blitz: {blitzRating} | Bullet: {bulletRating}");
                 }
             }

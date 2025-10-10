@@ -9,6 +9,7 @@ using TwitchLib.Communication.Models;
 using ooceBot;
 using System.Net.Http;
 using System.Text.Json;
+using ooceBot.Commands;
 
 class Program
 {
@@ -73,9 +74,18 @@ class Program
 
         switch (commandParts.First())
         {
+            case "!addquote":
+                if (commandParts.Last() != string.Empty)
+                {
+                    var quoteIndex = QuoteCommandMethods.AddQuote(commandParts.Last());
+                    client.SendMessage(e.ChatMessage.Channel, $"Quote added. To reference it, type the following: !quote {quoteIndex}");
+                }
+                else
+                    client.SendMessage(e.ChatMessage.Channel, $"When using the !addquote command, don't forget to include the quote! The command looks like this: !addquote (insert quote here)");
+                break;
             case "!audit":
                 if (commandParts[1] != null)
-                    CommandMethods.AuditChatter(client, e, commandParts.Last());
+                    ChessCommandMethods.AuditChatter(client, e, commandParts.Last());
                 else
                     client.SendMessage(e.ChatMessage.Channel, $"Hmm...something went wrong. Make sure you are using a valid username and try again with the following format: !audit (username)");
                 break;
@@ -98,12 +108,14 @@ class Program
             case "!lurk":
                 client.SendMessage(e.ChatMessage.Channel, $"{e.ChatMessage.Username}, your continued support is greatly appreciated. Talk to you soon!");
                 break;
+            case "!quote":
+                break;
             case "!spotify":
                 client.SendMessage(e.ChatMessage.Channel, "oBtooce's Spotify page: https://open.spotify.com/user/obtoose");
                 break;
             case "!stats":
-                if (commandParts[1] != null)
-                    CommandMethods.GetChesscomStats(client, e, commandParts.Last());
+                if (commandParts.Last() != string.Empty)
+                    ChessCommandMethods.GetChesscomStats(client, e, commandParts.Last());
                 else
                     client.SendMessage(e.ChatMessage.Channel, $"Hmm...something went wrong. Make sure you are using a valid username and try again with the following format: !stats (username)");
                 break;
