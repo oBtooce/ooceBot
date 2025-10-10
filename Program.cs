@@ -73,17 +73,50 @@ class Program
 
         switch (commandParts.First())
         {
+            case "!audit":
+                if (commandParts[1] != null)
+                    CommandMethods.AuditChatter(client, e, commandParts.Last());
+                else
+                    client.SendMessage(e.ChatMessage.Channel, $"Hmm...something went wrong. Make sure you are using a valid username and try again with the following format: !audit (username)");
+                break;
+            case "!croissant":
+                client.SendMessage(e.ChatMessage.Channel, $"https://en.wikipedia.org/wiki/En_passant");
+                break;
+            case "!dc":
+            case "!discord":
+                client.SendMessage(e.ChatMessage.Channel, "oBtooce's Discord: https://discord.gg/5RTxTFurGF");
+                break;
+            case "!f":
+                client.SendMessage(e.ChatMessage.Channel, "obtoocF");
+                break;
+            case "!finecheddar":
+                client.SendMessage(e.ChatMessage.Channel, $"https://en.wikipedia.org/wiki/Fianchetto");
+                break;
             case "!hello":
                 client.SendMessage(e.ChatMessage.Channel, $"Hello {e.ChatMessage.Username}!");
                 break;
             case "!lurk":
                 client.SendMessage(e.ChatMessage.Channel, $"{e.ChatMessage.Username}, your continued support is greatly appreciated. Talk to you soon!");
                 break;
+            case "!spotify":
+                client.SendMessage(e.ChatMessage.Channel, "oBtooce's Spotify page: https://open.spotify.com/user/obtoose");
+                break;
             case "!stats":
                 if (commandParts[1] != null)
                     CommandMethods.GetChesscomStats(client, e, commandParts.Last());
                 else
-                    client.SendMessage(e.ChatMessage.Channel, $"Hmm...something went wrong. Make sure you are using a valid Chess.com username and try again with the following format: !stats (username)");
+                    client.SendMessage(e.ChatMessage.Channel, $"Hmm...something went wrong. Make sure you are using a valid username and try again with the following format: !stats (username)");
+                break;
+            case "!twt":
+            case "!twitter":
+                client.SendMessage(e.ChatMessage.Channel, "oBtooce's Twitter: https://twitter.com/oBtuuse");
+                break;
+            case "!vid":
+                client.SendMessage(e.ChatMessage.Channel, "Latest YouTube video: https://youtu.be/STmFRwBFvqc");
+                break;
+            case "!yt":
+            case "!youtube":
+                client.SendMessage(e.ChatMessage.Channel, "oBtooce's YouTube channel: https://www.youtube.com/channel/UCjS2ciB4D3iftZS3Hj1CCWg");
                 break;
             default:
                 break;
