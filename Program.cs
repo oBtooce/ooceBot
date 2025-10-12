@@ -70,18 +70,18 @@ class Program
 
     private static void Client_OnMessageReceived(object sender, OnMessageReceivedArgs e)
     {
-        string[] commandParts = e.ChatMessage.Message.Split(" ");
+        string[] commandParts = e.ChatMessage.Message.Split(new char[] { ' ' }, 2);
 
         switch (commandParts.First())
         {
             case "!addquote":
                 if (commandParts.Last() != string.Empty)
                 {
-                    var quoteIndex = QuoteCommandMethods.AddQuote(commandParts.Last());
-                    client.SendMessage(e.ChatMessage.Channel, $"Quote added. To reference it, type the following: !quote {quoteIndex}");
+                    QuoteCommandMethods.AddQuote(commandParts.Last());
+                    client.SendMessage(e.ChatMessage.Channel, $"Quote added. Thank you for creating history in oBtooce's stream!");
                 }
                 else
-                    client.SendMessage(e.ChatMessage.Channel, $"When using the !addquote command, don't forget to include the quote! The command looks like this: !addquote (insert quote here)");
+                    client.SendMessage(e.ChatMessage.Channel, $"When using the !addquote command, don't forget to include the quote! The command looks like this: !addquote \"insert quote here\"");
                 break;
             case "!audit":
                 if (commandParts[1] != null)
@@ -109,6 +109,22 @@ class Program
                 client.SendMessage(e.ChatMessage.Channel, $"{e.ChatMessage.Username}, your continued support is greatly appreciated. Talk to you soon!");
                 break;
             case "!quote":
+                // Check if a line number has been provided and validate it, otherwise return a random quote from the text file
+                if (commandParts.Last() != null)
+                {
+                    var isNumeric = int.TryParse(commandParts.Last(), out int result);
+
+                    if (!isNumeric)
+                        client.SendMessage(e.ChatMessage.Channel, "If you are choosing a quote, make sure you enter a number! Otherwise, just type !randomquote or !rq for a random quote.");
+                    else
+                        client.SendMessage(e.ChatMessage.Channel, QuoteCommandMethods.SelectQuote(result));
+                }
+                else
+                    client.SendMessage(e.ChatMessage.Channel, "If you are choosing a quote, make sure you enter a number! Otherwise, just type !randomquote or !rq for a random quote.");
+                break;
+            case "!randomquote":
+            case "!rq":
+                client.SendMessage(e.ChatMessage.Channel, QuoteCommandMethods.SelectQuote());
                 break;
             case "!spotify":
                 client.SendMessage(e.ChatMessage.Channel, "oBtooce's Spotify page: https://open.spotify.com/user/obtoose");

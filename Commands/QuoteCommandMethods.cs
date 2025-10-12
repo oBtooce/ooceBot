@@ -8,20 +8,32 @@ namespace ooceBot.Commands
 {
     public static class QuoteCommandMethods
     {
-        public static int AddQuote(string quote)
+        public static Random random { get; set; } = new Random();
+
+        public static void AddQuote(string quote)
         {
-            string currentDirectory = Directory.GetCurrentDirectory();
-            string quoteFilePath = $"{currentDirectory}/quoteFile.txt";
+            string filePath = $"{Directory.GetCurrentDirectory()}/quoteFile.txt";
 
             // Create the file if it doesn't already exist
-            if (!File.Exists(quoteFilePath))
-                File.Create(quoteFilePath);
+            if (!File.Exists(filePath))
+                File.Create(filePath);
 
             // Add newline to delimit the quote
-            File.AppendText($"{quote}\n");
+            File.AppendAllText(filePath, quote + Environment.NewLine);
+        }
 
-            // Return the index for users to try out
-            return File.ReadLines(quoteFilePath).Count();
+        public static string SelectQuote(int index = -1)
+        {
+            string filePath = $"{Directory.GetCurrentDirectory()}/quoteFile.txt";
+            string[] quoteLines = File.ReadAllLines(filePath);
+
+            if (index != -1)
+                return quoteLines[index];
+            else
+            {
+                var randomIndex = random.Next(0, quoteLines.Length - 1);
+                return quoteLines[randomIndex];
+            }
         }
     }
 }
