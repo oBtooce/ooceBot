@@ -116,6 +116,8 @@ class Program
 
                     if (!isNumeric)
                         client.SendMessage(e.ChatMessage.Channel, "If you are choosing a quote, make sure you enter a number! Otherwise, just type !randomquote or !rq for a random quote.");
+                    else if (result < 0 || result >= QuoteCommandMethods.TotalQuotes)
+                        client.SendMessage(e.ChatMessage.Channel, $"Whoops! that number is out of range. Try a number from 0 to {QuoteCommandMethods.TotalQuotes - 1}");
                     else
                         client.SendMessage(e.ChatMessage.Channel, QuoteCommandMethods.SelectQuote(result));
                 }

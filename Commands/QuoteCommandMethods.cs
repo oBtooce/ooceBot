@@ -10,25 +10,32 @@ namespace ooceBot.Commands
     {
         public static Random random { get; set; } = new Random();
 
+        public static string FilePath { get; set; } = $"{Directory.GetCurrentDirectory()}/quoteFile.txt";
+
+        public static int TotalQuotes { get; set; } = File.ReadAllLines($"{FilePath}").Length;
+
         public static void AddQuote(string quote)
         {
-            string filePath = $"{Directory.GetCurrentDirectory()}/quoteFile.txt";
-
             // Create the file if it doesn't already exist
-            if (!File.Exists(filePath))
-                File.Create(filePath);
+            if (!File.Exists(FilePath))
+                File.Create(FilePath);
 
             // Add newline to delimit the quote
-            File.AppendAllText(filePath, quote + Environment.NewLine);
+            File.AppendAllText(FilePath, $"#{TotalQuotes + 1}: {quote + Environment.NewLine}");
         }
 
         public static string SelectQuote(int index = -1)
         {
-            string filePath = $"{Directory.GetCurrentDirectory()}/quoteFile.txt";
-            string[] quoteLines = File.ReadAllLines(filePath);
+            string[] quoteLines = File.ReadAllLines(FilePath);
 
+            // When we have a value, make sure it is valid
             if (index != -1)
-                return quoteLines[index];
+            {
+                if (index > quoteLines.Length)
+                    return string.Empty;
+                else
+                    return quoteLines[index];
+            }
             else
             {
                 var randomIndex = random.Next(0, quoteLines.Length - 1);
