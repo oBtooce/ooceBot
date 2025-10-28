@@ -55,11 +55,41 @@ namespace ooceBot.Commands
                 {
                     JsonElement root = doc.RootElement;
 
-                    string rapidRating = root.GetProperty("chess_rapid").GetProperty("last").GetProperty("rating").ToString();
-                    string blitzRating = root.GetProperty("chess_blitz").GetProperty("last").GetProperty("rating").ToString();
-                    string bulletRating = root.GetProperty("chess_bullet").GetProperty("last").GetProperty("rating").ToString();
+                    Dictionary<string, string> stats = new Dictionary<string, string>();
 
-                    client.SendMessage(args.ChatMessage.Channel, $"Rapid: {rapidRating} | Blitz: {blitzRating} | Bullet: {bulletRating}");
+                    // Variables for rapid, blitz and bullet
+                    string rapidRating, blitzRating, bulletRating;
+                    rapidRating = blitzRating = bulletRating = string.Empty;
+
+                    // Null checks on each time control so that things don't break if someone hasn't played a particular one
+                    if (root.TryGetProperty("chess_rapid", out JsonElement rapid) == true)
+                        stats.Add("Rapid", root.GetProperty("chess_rapid").GetProperty("last").GetProperty("rating").ToString());
+
+                    if (root.TryGetProperty("chess_blitz", out JsonElement blitz) == true)
+                        stats.Add("Blitz", root.GetProperty("chess_blitz").GetProperty("last").GetProperty("rating").ToString());
+
+                    if (root.TryGetProperty("chess_blitz", out JsonElement bullet) == true)
+                        stats.Add("Bullet", root.GetProperty("chess_bullet").GetProperty("last").GetProperty("rating").ToString());
+
+                    // Make sure that there is something to return here
+                    if (stats.Count == 0)
+                    {
+                        client.SendMessage(args.ChatMessage.Channel, $"An account for {username} exists, but no rapid, blitz or bullet games have been played.");
+                        return;
+                    }
+
+                    // Create the output string based on the available time control data
+                    string outputMessage = $"Stats for {username} (Chess.com) -- ";
+
+                    foreach (var stat in stats)
+                    {
+                        if (outputMessage.EndsWith("-- "))
+                            outputMessage += $"{stat.Key}: {stat.Value}";
+                        else
+                            outputMessage += $" | {stat.Key}: {stat.Value}";
+                    }
+
+                    client.SendMessage(args.ChatMessage.Channel, outputMessage);
                 }
             }
         }

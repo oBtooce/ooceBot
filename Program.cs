@@ -10,6 +10,8 @@ using ooceBot;
 using System.Net.Http;
 using System.Text.Json;
 using ooceBot.Commands;
+using TwitchLib.EventSub.Websockets;
+using TwitchLib.EventSub.Websockets.Core.EventArgs;
 
 class Program
 {
@@ -17,20 +19,18 @@ class Program
 
     public static async Task Main(string[] args)
     {
-        // Configuration
-        string botUsername = BotVariables.BotUsername;
-        string channelToJoin = BotVariables.ChannelToJoin;
-
+        // Set up HTTP client object with OAuth refresh URI as the base address
         HttpClient apiCallClient = new HttpClient()
         {
-            BaseAddress = new Uri(BotVariables.RefreshUri),
+            BaseAddress = new Uri(BotVariables.OAuthRefreshUri),
         };
 
         // Verify token authenticity and refresh if needed
         var oauthToken = await RefreshOAuthToken(apiCallClient);
+        //await ConnectToWebSocket();
 
         // Set up client
-        ConnectionCredentials credentials = new ConnectionCredentials(botUsername, oauthToken);
+        ConnectionCredentials credentials = new ConnectionCredentials(BotVariables.BotUsername, oauthToken);
         var clientOptions = new ClientOptions
         {
             MessagesAllowedInPeriod = 750,
@@ -62,12 +62,6 @@ class Program
         client.JoinChannel(BotVariables.ChannelToJoin);
     }
 
-    private static void Client_OnJoinedChannel(object sender, OnJoinedChannelArgs e)
-    {
-        // Send "Hello world" message when joining
-        client.SendMessage(e.Channel, "ooceBot is in the house!");
-    }
-
     private static void Client_OnMessageReceived(object sender, OnMessageReceivedArgs e)
     {
         string[] commandParts = e.ChatMessage.Message.Split(new char[] { ' ' }, 2);
@@ -89,6 +83,10 @@ class Program
                 else
                     client.SendMessage(e.ChatMessage.Channel, $"Hmm...something went wrong. Make sure you are using a valid username and try again with the following format: !audit (username)");
                 break;
+            //case "!commands":
+            //    string commandList = BuildCommandList();
+            //    client.SendMessage(e.ChatMessage.Channel, $"Here is the list of usable commands in this stream: {commandList}");
+            //    break;
             case "!croissant":
                 client.SendMessage(e.ChatMessage.Channel, $"https://en.wikipedia.org/wiki/En_passant");
                 break;
@@ -113,11 +111,12 @@ class Program
                 if (commandParts.Last() != null)
                 {
                     var isNumeric = int.TryParse(commandParts.Last(), out int result);
+                    var lines = File.ReadAllLines(QuoteCommandMethods.FilePath).Length;
 
                     if (!isNumeric)
                         client.SendMessage(e.ChatMessage.Channel, "If you are choosing a quote, make sure you enter a number! Otherwise, just type !randomquote or !rq for a random quote.");
-                    else if (result < 0 || result >= QuoteCommandMethods.TotalQuotes)
-                        client.SendMessage(e.ChatMessage.Channel, $"Whoops! that number is out of range. Try a number from 0 to {QuoteCommandMethods.TotalQuotes - 1}");
+                    else if (result < 0 || result >= lines)
+                        client.SendMessage(e.ChatMessage.Channel, $"Whoops! that number is out of range. Try a number from 0 to {lines - 1}");
                     else
                         client.SendMessage(e.ChatMessage.Channel, QuoteCommandMethods.SelectQuote(result));
                 }
@@ -128,6 +127,9 @@ class Program
             case "!rq":
                 client.SendMessage(e.ChatMessage.Channel, QuoteCommandMethods.SelectQuote());
                 break;
+            //case "!scam":
+            //    client.SendMessage(e.ChatMessage.Channel, GeneralCommandMethods.);
+            //    break;
             case "!spotify":
                 client.SendMessage(e.ChatMessage.Channel, "oBtooce's Spotify page: https://open.spotify.com/user/obtoose");
                 break;
@@ -166,7 +168,7 @@ class Program
 
         HttpContent requestContent = new FormUrlEncodedContent(formData);
 
-        HttpResponseMessage response = await client.PostAsync(BotVariables.RefreshUri, requestContent);
+        HttpResponseMessage response = await client.PostAsync(BotVariables.OAuthRefreshUri, requestContent);
 
         if (response.IsSuccessStatusCode)
         {
@@ -184,5 +186,32 @@ class Program
 
             return string.Empty;
         }
+    }
+
+    private static async Task<string> ConnectToWebSocket()
+    {
+        var webSocket = new EventSubWebsocketClient();
+
+        webSocket.ChannelPointsCustomRewardRedemptionAdd += (sender, e) =>
+        {
+            Console.WriteLine("breh");
+
+            return Task.Delay(1000);
+        };
+
+        await webSocket.ConnectAsync(BotVariables.WebSocketUri);
+
+        await Task.Delay(1000);
+
+        return "duh";
+    }
+
+    private static string BuildCommandList()
+    {
+        string commands = string.Empty;
+
+
+
+        return commands;
     }
 }
