@@ -12,9 +12,9 @@ namespace ooceBot
         public static string ClientID { get; set; } = "f9t5ykdl3webq5v5q7pfqtre8ib7sx";
 
         public static string ClientSecret { get; set; } = "nfk9j3tlkzyot58jebfesa6gxeoxbr";
-        public static string OAuthToken { get; set; } = "oauth:i3j3u8yd6wc4jkkw2n6juukkddid13";
+        public static string OAuthToken { get; set; } = "oauth:irxwerasly3gd7omo5micoxkjg6zwv";
 
-        public static string OAuthRefreshToken { get; set; } = "0917i441bbgrgo2ndbwjxfjtkzlalrui4newg56qiilofhgvhu";
+        public static string OAuthRefreshToken { get; set; } = "tonfq80tja076he7ln6xubp9i64rikxj3w7r54rlp6nlqofs4j";
         
         public static string OAuthRefreshUri { get; } = "https://id.twitch.tv/oauth2/token";
 

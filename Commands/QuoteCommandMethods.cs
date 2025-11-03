@@ -12,8 +12,6 @@ namespace ooceBot.Commands
 
         public static string FilePath { get; set; } = $"{Directory.GetCurrentDirectory()}/quoteFile.txt";
 
-        public static int TotalQuotes { get; set; } = File.ReadAllLines($"{FilePath}").Length;
-
         public static void AddQuote(string quote)
         {
             // Create the file if it doesn't already exist
@@ -21,7 +19,7 @@ namespace ooceBot.Commands
                 File.Create(FilePath);
 
             // Add newline to delimit the quote
-            File.AppendAllText(FilePath, $"#{TotalQuotes + 1}: {quote + Environment.NewLine}");
+            File.AppendAllText(FilePath, $"#{File.ReadAllLines(FilePath).Length + 1}: {quote + Environment.NewLine}");
         }
 
         public static string SelectQuote(int index = -1)

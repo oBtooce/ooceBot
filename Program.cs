@@ -27,7 +27,9 @@ class Program
 
         // Verify token authenticity and refresh if needed
         var oauthToken = await RefreshOAuthToken(apiCallClient);
-        //await ConnectToWebSocket();
+
+        // Open websocket connection to listen for channel point redemptions
+        //WebSocketMethods.StartListeningForEvents();
 
         // Set up client
         ConnectionCredentials credentials = new ConnectionCredentials(BotVariables.BotUsername, oauthToken);
@@ -57,8 +59,6 @@ class Program
 
     private static void Client_OnConnected(object sender, OnConnectedArgs e)
     {
-
-        Console.WriteLine($"Connected to Twitch as {e.BotUsername}");
         client.JoinChannel(BotVariables.ChannelToJoin);
     }
 
@@ -111,11 +111,17 @@ class Program
                 if (commandParts.Last() != null)
                 {
                     var isNumeric = int.TryParse(commandParts.Last(), out int result);
+
+                    if (isNumeric == false)
+                    {
+                        client.SendMessage(e.ChatMessage.Channel, "If you are choosing a quote, make sure you enter a number! Otherwise, just type !randomquote or !rq for a random quote.");
+                        return;
+                    }
+
+                    // If we got a valid number, do the work
                     var lines = File.ReadAllLines(QuoteCommandMethods.FilePath).Length;
 
-                    if (!isNumeric)
-                        client.SendMessage(e.ChatMessage.Channel, "If you are choosing a quote, make sure you enter a number! Otherwise, just type !randomquote or !rq for a random quote.");
-                    else if (result < 0 || result >= lines)
+                    if (result < 0 || result >= lines)
                         client.SendMessage(e.ChatMessage.Channel, $"Whoops! that number is out of range. Try a number from 0 to {lines - 1}");
                     else
                         client.SendMessage(e.ChatMessage.Channel, QuoteCommandMethods.SelectQuote(result));
@@ -186,32 +192,5 @@ class Program
 
             return string.Empty;
         }
-    }
-
-    private static async Task<string> ConnectToWebSocket()
-    {
-        var webSocket = new EventSubWebsocketClient();
-
-        webSocket.ChannelPointsCustomRewardRedemptionAdd += (sender, e) =>
-        {
-            Console.WriteLine("breh");
-
-            return Task.Delay(1000);
-        };
-
-        await webSocket.ConnectAsync(BotVariables.WebSocketUri);
-
-        await Task.Delay(1000);
-
-        return "duh";
-    }
-
-    private static string BuildCommandList()
-    {
-        string commands = string.Empty;
-
-
-
-        return commands;
     }
 }
