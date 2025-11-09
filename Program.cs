@@ -29,7 +29,7 @@ class Program
         var oauthToken = await RefreshOAuthToken(apiCallClient);
 
         // Open websocket connection to listen for channel point redemptions
-        //WebSocketMethods.StartListeningForEvents();
+        //☻WebSocketMethods.StartListeningForEvents();
 
         // Set up client
         ConnectionCredentials credentials = new ConnectionCredentials(BotVariables.BotUsername, oauthToken);
@@ -132,6 +132,9 @@ class Program
             case "!randomquote":
             case "!rq":
                 client.SendMessage(e.ChatMessage.Channel, QuoteCommandMethods.SelectQuote());
+                break;
+            case "!schedule":
+                client.SendMessage(e.ChatMessage.Channel, "oBtooce's schedule: Friday 7 PM EST | Saturday 7 PM EST | Sunday 7 PM EST");
                 break;
             //case "!scam":
             //    client.SendMessage(e.ChatMessage.Channel, GeneralCommandMethods.);

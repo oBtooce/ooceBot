@@ -27,5 +27,9 @@ namespace ooceBot
         #region WebSocket Variables
         public static Uri WebSocketUri { get; } = new Uri("wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=30");
         #endregion
+
+        #region Email Variable
+        public static string Email { get; } = "alex.b.waddell@gmail.com";
+        #endregion
     }
 }

@@ -16,7 +16,7 @@ namespace ooceBot.Commands
         {
             HttpClient getCallClient = new HttpClient();
 
-            getCallClient.DefaultRequestHeaders.Add("User-Agent", "MyChessApp/1.0 (alex.b.waddell@gmail.com)");
+            getCallClient.DefaultRequestHeaders.Add("User-Agent", $"MyChessApp/1.0 ({BotVariables.Email})");
 
             HttpResponseMessage response = await getCallClient.GetAsync($"https://api.chess.com/pub/player/{username}");
 
@@ -30,7 +30,16 @@ namespace ooceBot.Commands
                 {
                     JsonElement root = doc.RootElement;
 
-                    root.GetProperty("joined").TryGetDouble(out double startDate);
+                    // Try to get the joined property and handle the error if it does not exist
+                    var property = root.TryGetProperty("joined", out JsonElement joinedThing);
+
+                    if (property == false)
+                    {
+                        client.SendMessage(args.ChatMessage.Channel, $"'{username}' does not exist in the chesscom database.");
+                        return;
+                    }
+
+                    double startDate = joinedThing.GetDouble();
                     string joinDate = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(startDate).ToShortDateString();
 
                     client.SendMessage(args.ChatMessage.Channel, $"{username}'s account creation date is: {joinDate}");

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.WebSockets;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -40,37 +41,62 @@ namespace ooceBot.Commands
 
             while (WebSocketInstance.State == WebSocketState.Open)
             {
-                var result = await WebSocketInstance.ReceiveAsync(buffer, CancellationToken.None);
-
-                // When the result has been returned, convert it from the buffer into a JSON item (buffer -> string -> JSON)
-                string message = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                JsonDocument jsonResult = JsonDocument.Parse(message);
-
-                // Work with the JSON object to figure out the message type, then handle accordingly
-                var root = jsonResult.RootElement;
-
-                var messageType = root.GetProperty("metadata").GetProperty("message_type").GetString();
-
-                switch (messageType)
+                // ConnectAsync fires back chunks of JSON instead of the whole thing, so we need to handle everything until the end of the message is found
+                using (var memoryStream = new MemoryStream())
                 {
-                    case "notification":
-                        string sessionId = await SessionReady.Task;
-                        Console.WriteLine(sessionId);
-                        break;
-                    case "session_keepalive":
-                        break;
-                    case "session_reconnect":
-                        Uri WebSocketReconnectUri = new Uri(root.GetProperty("payload").GetProperty("session").GetProperty("reconnect_url").GetString());
-                        await WebSocketInstance.ConnectAsync(WebSocketReconnectUri, CancellationToken.None);
-                        break;
-                    case "session_welcome":
-                        // Get the session ID that will be used for subscribing to events from the stream
-                        WebSocketSessionID = root.GetProperty("payload").GetProperty("session").GetProperty("id").GetString();
-                        SessionReady.TrySetResult(WebSocketSessionID);
-                        break;
-                    default:
-                        break;
+                    WebSocketReceiveResult result;
+                    do
+                    {
+                        result = await WebSocketInstance.ReceiveAsync(buffer, CancellationToken.None);
+
+                        if (result.MessageType == WebSocketMessageType.Close)
+                        {
+                            Console.WriteLine("WebSocket closed by server.");
+                            await WebSocketInstance.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
+                            return;
+                        }
+
+                        memoryStream.Write(buffer, 0, result.Count);
+                    } while (!result.EndOfMessage);
+
+                    memoryStream.Seek(0, SeekOrigin.Begin);
+
+                    string message = Encoding.UTF8.GetString(memoryStream.ToArray());
+                    HandleMessage(message);
                 }
+            }
+        }
+
+        private static async void HandleMessage(string message)
+        {
+            // When the result has been returned, convert it from the buffer into a JSON item (buffer -> string -> JSON)
+            JsonDocument jsonResult = JsonDocument.Parse(message);
+
+            // Work with the JSON object to figure out the message type, then handle accordingly
+            var root = jsonResult.RootElement;
+
+            var messageType = root.GetProperty("metadata").GetProperty("message_type").GetString();
+
+            switch (messageType)
+            {
+                case "notification":
+                    string sessionId = await SessionReady.Task;
+                    Console.WriteLine(sessionId);
+                    break;
+                case "session_keepalive":
+                    Console.WriteLine("Keeping alive");
+                    break;
+                case "session_reconnect":
+                    Uri WebSocketReconnectUri = new Uri(root.GetProperty("payload").GetProperty("session").GetProperty("reconnect_url").GetString());
+                    await WebSocketInstance.ConnectAsync(WebSocketReconnectUri, CancellationToken.None);
+                    break;
+                case "session_welcome":
+                    // Get the session ID that will be used for subscribing to events from the stream
+                    WebSocketSessionID = root.GetProperty("payload").GetProperty("session").GetProperty("id").GetString();
+                    SessionReady.TrySetResult(WebSocketSessionID);
+                    break;
+                default:
+                    break;
             }
         }
     }
