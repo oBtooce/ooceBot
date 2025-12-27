@@ -26,23 +26,30 @@ namespace ooceBot.Commands
             {
                 string jsonString = await response.Content.ReadAsStringAsync();
 
-                using (JsonDocument doc = JsonDocument.Parse(jsonString))
+                if (jsonString != string.Empty && jsonString != null)
                 {
-                    JsonElement root = doc.RootElement;
-
-                    // Try to get the joined property and handle the error if it does not exist
-                    var property = root.TryGetProperty("joined", out JsonElement joinedThing);
-
-                    if (property == false)
+                    using (JsonDocument doc = JsonDocument.Parse(jsonString))
                     {
-                        client.SendMessage(args.ChatMessage.Channel, $"'{username}' does not exist in the chesscom database.");
-                        return;
+                        JsonElement root = doc.RootElement;
+
+                        // Try to get the joined property and handle the error if it does not exist
+                        var property = root.TryGetProperty("joined", out JsonElement joinedThing);
+
+                        if (property == false)
+                        {
+                            client.SendMessage(args.ChatMessage.Channel, $"'{username}' does not exist in the chesscom database.");
+                            return;
+                        }
+
+                        double startDate = joinedThing.GetDouble();
+                        string joinDate = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(startDate).ToShortDateString();
+
+                        client.SendMessage(args.ChatMessage.Channel, $"{username}'s account creation date is: {joinDate}");
                     }
-
-                    double startDate = joinedThing.GetDouble();
-                    string joinDate = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(startDate).ToShortDateString();
-
-                    client.SendMessage(args.ChatMessage.Channel, $"{username}'s account creation date is: {joinDate}");
+                }
+                else
+                {
+                    client.SendMessage(args.ChatMessage.Channel, $"An account with the name of '{username}' does not exist.");
                 }
             }
         }
@@ -50,7 +57,7 @@ namespace ooceBot.Commands
         {
             HttpClient getCallClient = new HttpClient();
 
-            getCallClient.DefaultRequestHeaders.Add("User-Agent", "MyChessApp/1.0 (alex.b.waddell@gmail.com)");
+            getCallClient.DefaultRequestHeaders.Add("User-Agent", $"MyChessApp/1.0 ({BotVariables.Email})");
 
             HttpResponseMessage response = await getCallClient.GetAsync($"https://api.chess.com/pub/player/{username}/stats");
 
@@ -60,45 +67,52 @@ namespace ooceBot.Commands
             {
                 string jsonString = await response.Content.ReadAsStringAsync();
 
-                using (JsonDocument doc = JsonDocument.Parse(jsonString))
+                if (jsonString != string.Empty && jsonString != null)
                 {
-                    JsonElement root = doc.RootElement;
-
-                    Dictionary<string, string> stats = new Dictionary<string, string>();
-
-                    // Variables for rapid, blitz and bullet
-                    string rapidRating, blitzRating, bulletRating;
-                    rapidRating = blitzRating = bulletRating = string.Empty;
-
-                    // Null checks on each time control so that things don't break if someone hasn't played a particular one
-                    if (root.TryGetProperty("chess_rapid", out JsonElement rapid) == true)
-                        stats.Add("Rapid", root.GetProperty("chess_rapid").GetProperty("last").GetProperty("rating").ToString());
-
-                    if (root.TryGetProperty("chess_blitz", out JsonElement blitz) == true)
-                        stats.Add("Blitz", root.GetProperty("chess_blitz").GetProperty("last").GetProperty("rating").ToString());
-
-                    if (root.TryGetProperty("chess_blitz", out JsonElement bullet) == true)
-                        stats.Add("Bullet", root.GetProperty("chess_bullet").GetProperty("last").GetProperty("rating").ToString());
-
-                    // Make sure that there is something to return here
-                    if (stats.Count == 0)
+                    using (JsonDocument doc = JsonDocument.Parse(jsonString))
                     {
-                        client.SendMessage(args.ChatMessage.Channel, $"An account for {username} exists, but no rapid, blitz or bullet games have been played.");
-                        return;
+                        JsonElement root = doc.RootElement;
+
+                        Dictionary<string, string> stats = new Dictionary<string, string>();
+
+                        // Variables for rapid, blitz and bullet
+                        string rapidRating, blitzRating, bulletRating;
+                        rapidRating = blitzRating = bulletRating = string.Empty;
+
+                        // Null checks on each time control so that things don't break if someone hasn't played a particular one
+                        if (root.TryGetProperty("chess_rapid", out JsonElement rapid) == true)
+                            stats.Add("Rapid", root.GetProperty("chess_rapid").GetProperty("last").GetProperty("rating").ToString());
+
+                        if (root.TryGetProperty("chess_blitz", out JsonElement blitz) == true)
+                            stats.Add("Blitz", root.GetProperty("chess_blitz").GetProperty("last").GetProperty("rating").ToString());
+
+                        if (root.TryGetProperty("chess_blitz", out JsonElement bullet) == true)
+                            stats.Add("Bullet", root.GetProperty("chess_bullet").GetProperty("last").GetProperty("rating").ToString());
+
+                        // Make sure that there is something to return here
+                        if (stats.Count == 0)
+                        {
+                            client.SendMessage(args.ChatMessage.Channel, $"An account for {username} exists, but no rapid, blitz or bullet games have been played.");
+                            return;
+                        }
+
+                        // Create the output string based on the available time control data
+                        string outputMessage = $"Stats for {username} (Chess.com) -- ";
+
+                        foreach (var stat in stats)
+                        {
+                            if (outputMessage.EndsWith("-- "))
+                                outputMessage += $"{stat.Key}: {stat.Value}";
+                            else
+                                outputMessage += $" | {stat.Key}: {stat.Value}";
+                        }
+
+                        client.SendMessage(args.ChatMessage.Channel, outputMessage);
                     }
-
-                    // Create the output string based on the available time control data
-                    string outputMessage = $"Stats for {username} (Chess.com) -- ";
-
-                    foreach (var stat in stats)
-                    {
-                        if (outputMessage.EndsWith("-- "))
-                            outputMessage += $"{stat.Key}: {stat.Value}";
-                        else
-                            outputMessage += $" | {stat.Key}: {stat.Value}";
-                    }
-
-                    client.SendMessage(args.ChatMessage.Channel, outputMessage);
+                }
+                else
+                {
+                    client.SendMessage(args.ChatMessage.Channel, $"An account with the name of '{username}' does not exist.");
                 }
             }
         }
