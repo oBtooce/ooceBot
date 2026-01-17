@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualBasic;
+using Microsoft.Data.Sqlite;
 using System;
 using TwitchLib.Api;
 using TwitchLib.Client;
@@ -14,29 +15,35 @@ using ooceBot.Commands;
 using TwitchLib.EventSub.Websockets;
 using TwitchLib.EventSub.Websockets.Core.EventArgs;
 using TwitchLib.Api.Helix.Models.Channels.ModifyChannelInformation;
+using TwitchLib.Api.Helix;
+using System.Data;
 
 class Program
 {
     private static TwitchClient Client { get; set; }
 
-    private static TwitchAPI TwitchApi { get; set; } = new TwitchAPI();
-
-    private static string ChannelId { get; set; }
+    private static SqliteConnection Connection { get; set; } = new SqliteConnection("Data Source=TwitchStats.db");
 
     public static async Task Main(string[] args)
     {
-        // Declaration of all needed values for the bot
+        // Open the connection to the DB
+        Connection.Open();
 
+        // Create all tables that can be used through Twitch chat
+        InitializeAllTables();
+
+        // First things 
         HttpClient apiCallClient = new HttpClient()
         {
             BaseAddress = new Uri(BotVariables.OAuthRefreshUri),
         };
-
-        // Verify token authenticity and refresh if needed
+                
+        // Start out with a newly refreshed token and assign the resulting value to the property in BotVariables for later
         var oauthToken = await RefreshOAuthToken(apiCallClient);
+        BotVariables.OAuthToken = oauthToken;
 
         // Open websocket connection to listen for channel point redemptions
-        //☻WebSocketMethods.StartListeningForEvents();
+        //WebSocketMethods.StartListeningForEvents();
 
         // Set up client
         ConnectionCredentials credentials = new ConnectionCredentials(BotVariables.BotUsername, oauthToken);
@@ -61,18 +68,7 @@ class Program
         };
 
         Client.Connect();
-
-        //GetChannelId(BotVariables.ChannelToJoin).Wait();
         Console.ReadLine();
-    }
-
-    private static async Task GetChannelId(string channelName)
-    {
-        var users = await TwitchApi.Helix.Users.GetUsersAsync(logins: new List<string> { channelName });
-        if (users.Users.Length > 0)
-        {
-            ChannelId = users.Users[0].Id;
-        }
     }
 
     private static void Client_OnConnected(object sender, OnConnectedArgs e)
@@ -83,6 +79,9 @@ class Program
     private static async void Client_OnMessageReceived(object sender, OnMessageReceivedArgs e)
     {
         string[] commandParts = e.ChatMessage.Message.Split(new char[] { ' ' }, 2);
+
+        // Open new connection
+        Connection.Open();
 
         switch (commandParts.First())
         {
@@ -101,10 +100,9 @@ class Program
                 else
                     Client.SendMessage(e.ChatMessage.Channel, $"Hmm...something went wrong. Make sure you are using a valid username and try again with the following format: !audit (username)");
                 break;
-            //case "!commands":
-            //    string commandList = BuildCommandList();
-            //    client.SendMessage(e.ChatMessage.Channel, $"Here is the list of usable commands in this stream: {commandList}");
-            //    break;
+            case "!boner":
+                Client.SendMessage(e.ChatMessage.Channel, $"don't get married");
+                break;
             case "!croissant":
                 Client.SendMessage(e.ChatMessage.Channel, $"https://en.wikipedia.org/wiki/En_passant");
                 break;
@@ -112,14 +110,14 @@ class Program
             case "!discord":
                 Client.SendMessage(e.ChatMessage.Channel, "oBtooce's Discord: https://discord.gg/5RTxTFurGF");
                 break;
-            case "!f":
-                Client.SendMessage(e.ChatMessage.Channel, "obtoocF");
+            case "!emotes":
+                Client.SendMessage(e.ChatMessage.Channel, "Follower emotes: obtoocBri obtoocF obtoocW obtoocNice obtoocOmg");
                 break;
             case "!finecheddar":
                 Client.SendMessage(e.ChatMessage.Channel, $"https://en.wikipedia.org/wiki/Fianchetto");
                 break;
-            case "!hello":
-                Client.SendMessage(e.ChatMessage.Channel, $"Hello {e.ChatMessage.Username}!");
+            case "!jacob":
+                Client.SendMessage(e.ChatMessage.Channel, $"Blackjack");
                 break;
             case "!lurk":
                 Client.SendMessage(e.ChatMessage.Channel, $"{e.ChatMessage.Username}, your continued support is greatly appreciated. Talk to you soon!");
@@ -152,11 +150,31 @@ class Program
                 Client.SendMessage(e.ChatMessage.Channel, QuoteCommandMethods.SelectQuote());
                 break;
             case "!schedule":
-                Client.SendMessage(e.ChatMessage.Channel, "oBtooce's schedule: Friday 7 PM EST | Saturday 7 PM EST | Sunday 7 PM EST");
+                Client.SendMessage(e.ChatMessage.Channel, "oBtooce's schedule is a complete lie. Just tune in whenever!");
+                
                 break;
-            //case "!scam":
-            //    client.SendMessage(e.ChatMessage.Channel, GeneralCommandMethods.);
-            //    break;
+            case "!scam":
+                var chatterDisplayName = e.ChatMessage.DisplayName; // Maintains capitalization
+                                
+                var command = Connection.CreateCommand();
+                command.Parameters.AddWithValue("@chatter", chatterDisplayName);
+
+                // Create a new scam record or update an existing one
+                command.CommandText = $@"
+                    INSERT INTO ScamStatistics (username, scam_count) VALUES (@chatter, 1)
+                    ON CONFLICT(username)
+                    DO UPDATE SET scam_count = scam_count + 1
+                ";
+
+                command.ExecuteNonQuery();
+
+                // Get the relevant scam total from the DB
+                command.CommandText = $"SELECT scam_count FROM ScamStatistics WHERE username = @chatter";
+                int scamCount = Convert.ToInt32(command.ExecuteScalar());
+
+                // Let 'em know
+                Client.SendMessage(e.ChatMessage.Channel, $"{chatterDisplayName}, you've fallen for {scamCount} scams! You really should be more careful...");
+                break;
             case "!spotify":
                 Client.SendMessage(e.ChatMessage.Channel, "oBtooce's Spotify page: https://open.spotify.com/user/obtoose");
                 break;
@@ -167,17 +185,21 @@ class Program
                     Client.SendMessage(e.ChatMessage.Channel, $"Hmm...something went wrong. Make sure you are using a valid username and try again with the following format: !stats (username)");
                 break;
             case "!title":
-                if (e.ChatMessage.IsBroadcaster || e.ChatMessage.IsModerator)
+                if (!string.IsNullOrEmpty(commandParts.Last()))
                 {
-                    if (commandParts.Last() == null)
-                    {
-                        Client.SendMessage(e.ChatMessage.Channel, "Title required.");
-                        break;
-                    }
+                    TwitchAPI api = new TwitchAPI();
 
-                    await StreamCommandMethods.SetStreamTitle(commandParts.Last(), ChannelId, TwitchApi);
+                    // Update the API settings with client ID and OAuth token
+                    api.Settings.ClientId = BotVariables.ClientID;
+                    api.Settings.AccessToken = BotVariables.OAuthToken.Split(":").Last(); // To work with TwitchAPI, the access token can not have the "oauth:" prefix, so we chop it off
 
-                    Client.SendMessage(e.ChatMessage.Channel, $"New stream title: {commandParts.Last()}");
+                    // Get the broadcaster ID for the channel modification request
+                    var users = await api.Helix.Users.GetUsersAsync(logins: new List<string> { BotVariables.ChannelToJoin });
+                    string broadcasterId = users.Users[0].Id;
+
+                    await api.Helix.Channels.ModifyChannelInformationAsync(broadcasterId, new ModifyChannelInformationRequest { Title = commandParts.Last() });
+
+                    Client.SendMessage(e.ChatMessage.Channel, $"Title has been updated to \"{commandParts.Last()}\"");
                 }
 
                 break;
@@ -197,6 +219,24 @@ class Program
         }
     }
 
+    private static void InitializeAllTables()
+    {
+        var command = Connection.CreateCommand();
+
+        command.CommandText = @"
+            CREATE TABLE IF NOT EXISTS ScamStatistics (
+                username TEXT PRIMARY KEY,
+                scam_count INTEGER DEFAULT 0
+            )                    
+        ";
+
+        command.ExecuteNonQuery();
+
+        Connection.Close();
+
+        return;
+    }
+
     private static async Task<string> RefreshOAuthToken(HttpClient client)
     {
         // Build the POST content
@@ -209,7 +249,6 @@ class Program
         };
 
         HttpContent requestContent = new FormUrlEncodedContent(formData);
-
         HttpResponseMessage response = await client.PostAsync(BotVariables.OAuthRefreshUri, requestContent);
 
         if (response.IsSuccessStatusCode)
@@ -217,8 +256,6 @@ class Program
             string responseBody = await response.Content.ReadAsStringAsync();
             using (JsonDocument doc = JsonDocument.Parse(responseBody))
             {
-                JsonElement root = doc.RootElement;
-
                 return $"oauth:{doc.RootElement.GetProperty("access_token")}";
             }
         }
