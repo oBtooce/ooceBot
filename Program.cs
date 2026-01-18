@@ -24,6 +24,8 @@ class Program
 
     private static SqliteConnection Connection { get; set; } = new SqliteConnection("Data Source=TwitchStats.db");
 
+    private static Random Random { get; set; } = new Random();
+
     public static async Task Main(string[] args)
     {
         // Open the connection to the DB
@@ -149,21 +151,40 @@ class Program
             case "!rq":
                 Client.SendMessage(e.ChatMessage.Channel, QuoteCommandMethods.SelectQuote());
                 break;
+            case "!rngmove":
+                if (e.ChatMessage.IsBroadcaster || e.ChatMessage.IsModerator)
+                {
+                    string move = $"{BotVariables.PIECE_NOTATION[Random.Next(BotVariables.PIECE_NOTATION.Length)]}{BotVariables.FILE_NOTATION[Random.Next(BotVariables.FILE_NOTATION.Length)]}{BotVariables.RANK_NOTATION[Random.Next(BotVariables.RANK_NOTATION.Length)]}";
+
+                    Client.SendMessage(e.ChatMessage.Channel, $"The move for next game is {move} obtoocBri");
+                }
+                break;
             case "!schedule":
                 Client.SendMessage(e.ChatMessage.Channel, "oBtooce's schedule is a complete lie. Just tune in whenever!");
                 
                 break;
             case "!scam":
-                var chatterDisplayName = e.ChatMessage.DisplayName; // Maintains capitalization
-                                
                 var command = Connection.CreateCommand();
+
+                var chatterDisplayName = e.ChatMessage.DisplayName; // Maintains capitalization
                 command.Parameters.AddWithValue("@chatter", chatterDisplayName);
+
+                // Initial check to see if user has been scammed today
+                command.CommandText = $"SELECT scammed_today FROM ScamStatistics WHERE username = @chatter";
+                var scammedTodayValue = command.ExecuteScalar();
+
+                // If the user exists but they have already been scammed, then prevent it from happening again
+                if (scammedTodayValue != null && (long)scammedTodayValue == 1)
+                {
+                    Client.SendMessage(e.ChatMessage.Channel, "Slow down, eager beaver. Scams don't grow on trees. Check in next time.");
+                    return;
+                }
 
                 // Create a new scam record or update an existing one
                 command.CommandText = $@"
-                    INSERT INTO ScamStatistics (username, scam_count) VALUES (@chatter, 1)
+                    INSERT INTO ScamStatistics (username, scam_count, scammed_today) VALUES (@chatter, 1, 1)
                     ON CONFLICT(username)
-                    DO UPDATE SET scam_count = scam_count + 1
+                    DO UPDATE SET scam_count = scam_count + 1, scammed_today = 1
                 ";
 
                 command.ExecuteNonQuery();
@@ -171,9 +192,41 @@ class Program
                 // Get the relevant scam total from the DB
                 command.CommandText = $"SELECT scam_count FROM ScamStatistics WHERE username = @chatter";
                 int scamCount = Convert.ToInt32(command.ExecuteScalar());
+                string message;
+
+                switch (scamCount)
+                {
+                    case 1:
+                        message = $"obtoocW obtoocW Ladies and gentlemen, please welcome the newest member of the Scammed Group, {chatterDisplayName}! obtoocW obtoocW";
+                        break;
+                    case 2:
+                        message = $"{chatterDisplayName}, you got scammed a second time? Wow, that's really tough, man. Perhaps we can offer you a free donut?";
+                        break;
+                    case 3:
+                        message = $"Okay, that's three times now, {chatterDisplayName}...there's no way this is true. obtoocOmg";
+                        break;
+                    case 4:
+                        message = $"You know what, {chatterDisplayName}? Considering this is scam #{scamCount} that you've fallen for, we're starting to think that you are either doing this on purpose for some sort of sick game that only you are enjoying, or you are genuinely so dumb that you cannot learn from previous experiences. Either way, you do you. Just don't expect us to be surprised when you end up homeless.";
+                        break;
+                    case 5:
+                        message = $"{chatterDisplayName}, you've been scammed so much and so often that we have run out of things to say. From here on out, you get a cookie-cutter response. Maybe the number in each message will make you reflect on your actions but, full disclosure, we doubt it. Have fun.";
+                        break;
+                    case 10:
+                        message = $"Congratulations on the double-digit scam count, {chatterDisplayName}! The big 1-0!";
+                        break;
+                    case 69:
+                        message = $"{chatterDisplayName} has been scammed a grand total of {scamCount} times...nice. obtoocNice";
+                        break;
+                    case 100:
+                        message = $"Happy Scamiversary, {chatterDisplayName}! You've been scammed {scamCount} times and we will celebrate your colossal failure in style obtoocBri";
+                        break;
+                    default:
+                        message = $"{chatterDisplayName} has been scammed a grand total of {scamCount} times!";
+                        break;
+                }
 
                 // Let 'em know
-                Client.SendMessage(e.ChatMessage.Channel, $"{chatterDisplayName}, you've fallen for {scamCount} scams! You really should be more careful...");
+                Client.SendMessage(e.ChatMessage.Channel, message);
                 break;
             case "!spotify":
                 Client.SendMessage(e.ChatMessage.Channel, "oBtooce's Spotify page: https://open.spotify.com/user/obtoose");
@@ -210,6 +263,9 @@ class Program
             case "!vid":
                 Client.SendMessage(e.ChatMessage.Channel, "Latest YouTube video: https://youtu.be/STmFRwBFvqc");
                 break;
+            case "!w":
+                Client.SendMessage(e.ChatMessage.Channel, "obtoocW obtoocW obtoocW obtoocW obtoocW obtoocW obtoocW");
+                break;
             case "!yt":
             case "!youtube":
                 Client.SendMessage(e.ChatMessage.Channel, "oBtooce's YouTube channel: https://www.youtube.com/channel/UCjS2ciB4D3iftZS3Hj1CCWg");
@@ -223,13 +279,18 @@ class Program
     {
         var command = Connection.CreateCommand();
 
+        // Table creation
         command.CommandText = @"
             CREATE TABLE IF NOT EXISTS ScamStatistics (
                 username TEXT PRIMARY KEY,
-                scam_count INTEGER DEFAULT 0
+                scam_count INTEGER DEFAULT 0,
+                scammed_today INTEGER NOT NULL DEFAULT 0
             )                    
         ";
+        command.ExecuteNonQuery();
 
+        // Everybody can get scammed again!
+        command.CommandText = "UPDATE ScamStatistics SET scammed_today = 0";
         command.ExecuteNonQuery();
 
         Connection.Close();
