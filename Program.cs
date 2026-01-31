@@ -17,6 +17,8 @@ using TwitchLib.EventSub.Websockets.Core.EventArgs;
 using TwitchLib.Api.Helix.Models.Channels.ModifyChannelInformation;
 using TwitchLib.Api.Helix;
 using System.Data;
+using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
 
 class Program
 {
@@ -85,7 +87,7 @@ class Program
         // Open new connection
         Connection.Open();
 
-        switch (commandParts.First())
+        switch (commandParts.First().ToLower())
         {
             case "!addquote":
                 if (commandParts.Last() != string.Empty)
@@ -117,6 +119,51 @@ class Program
                 break;
             case "!finecheddar":
                 Client.SendMessage(e.ChatMessage.Channel, $"https://en.wikipedia.org/wiki/Fianchetto");
+                break;
+            case "!guts":
+                PlaySoundWithFader($"{BotVariables.SOUND_FOLDER}\\Berserk soundtrack - 4 Gatsu.mp3", 2000, 2000);
+                
+                break;
+            case "!here":
+                var command = Connection.CreateCommand();
+
+                var chatterDisplayName = e.ChatMessage.DisplayName; // Maintains capitalization
+                command.Parameters.AddWithValue("@chatter", chatterDisplayName);
+
+                // Initial check to see if user has been scammed today
+                command.CommandText = $"SELECT is_present FROM ChatterStatistics WHERE username = @chatter";
+                var scammedTodayValue = command.ExecuteScalar();
+
+                // If the user exists but they have already been scammed, then prevent it from happening again
+                if (scammedTodayValue != null && (long)scammedTodayValue == 1)
+                {
+                    Client.SendMessage(e.ChatMessage.Channel, "Your attendance has already been taken. Check in next time obtoocBri");
+                    return;
+                }
+
+                // Create a new scam record or update an existing one
+                command.CommandText = $@"
+                    INSERT INTO ChatterStatistics (username, attendance_count, is_present) VALUES (@chatter, 1, 1)
+                    ON CONFLICT(username)
+                    DO UPDATE SET attendance_count = attendance_count + 1, is_present = 1
+                ";
+
+                command.ExecuteNonQuery();
+
+                // Get the relevant scam total from the DB
+                command.CommandText = $"SELECT attendance_count FROM ChatterStatistics WHERE username = @chatter";
+                int attendanceCount = Convert.ToInt32(command.ExecuteScalar());
+
+                string message;
+                int daysInClass = attendanceCount % 10;
+
+                if (daysInClass == 0)
+                    message = $"obtoocW obtoocW Congratulations! obtoocW obtoocW    {chatterDisplayName}, to reward you for your regular attendance, you get to redeem a channel point reward for free obtoocBri";
+                else
+                    message = $"{chatterDisplayName}, your attendance has been recorded. You have {daysInClass} days on record. Let's see what happens when you reach 10 days obtoocBri";
+
+                // Let 'em know
+                Client.SendMessage(e.ChatMessage.Channel, message);
                 break;
             case "!jacob":
                 Client.SendMessage(e.ChatMessage.Channel, $"Blackjack");
@@ -162,72 +209,7 @@ class Program
             case "!schedule":
                 Client.SendMessage(e.ChatMessage.Channel, "oBtooce's schedule is a complete lie. Just tune in whenever!");
                 
-                break;
-            case "!scam":
-                var command = Connection.CreateCommand();
-
-                var chatterDisplayName = e.ChatMessage.DisplayName; // Maintains capitalization
-                command.Parameters.AddWithValue("@chatter", chatterDisplayName);
-
-                // Initial check to see if user has been scammed today
-                command.CommandText = $"SELECT scammed_today FROM ScamStatistics WHERE username = @chatter";
-                var scammedTodayValue = command.ExecuteScalar();
-
-                // If the user exists but they have already been scammed, then prevent it from happening again
-                if (scammedTodayValue != null && (long)scammedTodayValue == 1)
-                {
-                    Client.SendMessage(e.ChatMessage.Channel, "Slow down, eager beaver. Scams don't grow on trees. Check in next time.");
-                    return;
-                }
-
-                // Create a new scam record or update an existing one
-                command.CommandText = $@"
-                    INSERT INTO ScamStatistics (username, scam_count, scammed_today) VALUES (@chatter, 1, 1)
-                    ON CONFLICT(username)
-                    DO UPDATE SET scam_count = scam_count + 1, scammed_today = 1
-                ";
-
-                command.ExecuteNonQuery();
-
-                // Get the relevant scam total from the DB
-                command.CommandText = $"SELECT scam_count FROM ScamStatistics WHERE username = @chatter";
-                int scamCount = Convert.ToInt32(command.ExecuteScalar());
-                string message;
-
-                switch (scamCount)
-                {
-                    case 1:
-                        message = $"obtoocW obtoocW Ladies and gentlemen, please welcome the newest member of the Scammed Group, {chatterDisplayName}! obtoocW obtoocW";
-                        break;
-                    case 2:
-                        message = $"{chatterDisplayName}, you got scammed a second time? Wow, that's really tough, man. Perhaps we can offer you a free donut?";
-                        break;
-                    case 3:
-                        message = $"Okay, that's three times now, {chatterDisplayName}...there's no way this is true. obtoocOmg";
-                        break;
-                    case 4:
-                        message = $"You know what, {chatterDisplayName}? Considering this is scam #{scamCount} that you've fallen for, we're starting to think that you are either doing this on purpose for some sort of sick game that only you are enjoying, or you are genuinely so dumb that you cannot learn from previous experiences. Either way, you do you. Just don't expect us to be surprised when you end up homeless.";
-                        break;
-                    case 5:
-                        message = $"{chatterDisplayName}, you've been scammed so much and so often that we have run out of things to say. From here on out, you get a cookie-cutter response. Maybe the number in each message will make you reflect on your actions but, full disclosure, we doubt it. Have fun.";
-                        break;
-                    case 10:
-                        message = $"Congratulations on the double-digit scam count, {chatterDisplayName}! The big 1-0!";
-                        break;
-                    case 69:
-                        message = $"{chatterDisplayName} has been scammed a grand total of {scamCount} times...nice. obtoocNice";
-                        break;
-                    case 100:
-                        message = $"Happy Scamiversary, {chatterDisplayName}! You've been scammed {scamCount} times and we will celebrate your colossal failure in style obtoocBri";
-                        break;
-                    default:
-                        message = $"{chatterDisplayName} has been scammed a grand total of {scamCount} times!";
-                        break;
-                }
-
-                // Let 'em know
-                Client.SendMessage(e.ChatMessage.Channel, message);
-                break;
+                break;            
             case "!spotify":
                 Client.SendMessage(e.ChatMessage.Channel, "oBtooce's Spotify page: https://open.spotify.com/user/obtoose");
                 break;
@@ -263,12 +245,15 @@ class Program
             case "!vid":
                 Client.SendMessage(e.ChatMessage.Channel, "Latest YouTube video: https://youtu.be/STmFRwBFvqc");
                 break;
-            case "!w":
-                Client.SendMessage(e.ChatMessage.Channel, "obtoocW obtoocW obtoocW obtoocW obtoocW obtoocW obtoocW");
-                break;
             case "!yt":
             case "!youtube":
                 Client.SendMessage(e.ChatMessage.Channel, "oBtooce's YouTube channel: https://www.youtube.com/channel/UCjS2ciB4D3iftZS3Hj1CCWg");
+                break;
+            case "nice":
+                Client.SendMessage(e.ChatMessage.Channel, "obtoocNice");
+                break;
+            case "w":
+                Client.SendMessage(e.ChatMessage.Channel, "obtoocW obtoocW obtoocW obtoocW obtoocW");
                 break;
             default:
                 break;
@@ -281,16 +266,16 @@ class Program
 
         // Table creation
         command.CommandText = @"
-            CREATE TABLE IF NOT EXISTS ScamStatistics (
+            CREATE TABLE IF NOT EXISTS ChatterStatistics (
                 username TEXT PRIMARY KEY,
-                scam_count INTEGER DEFAULT 0,
-                scammed_today INTEGER NOT NULL DEFAULT 0
-            )                    
+                attendance_count INTEGER DEFAULT 0,
+                is_present INTEGER NOT NULL DEFAULT 0
+            )
         ";
         command.ExecuteNonQuery();
 
         // Everybody can get scammed again!
-        command.CommandText = "UPDATE ScamStatistics SET scammed_today = 0";
+        command.CommandText = "UPDATE ChatterStatistics SET is_present = 0";
         command.ExecuteNonQuery();
 
         Connection.Close();
@@ -325,6 +310,47 @@ class Program
             Console.WriteLine($"Error: {response.StatusCode}");
 
             return string.Empty;
+        }
+    }
+
+    private static void PlaySound(string filePath)
+    {
+        // Set up all required values to play a sound (reader and WaveOutEvent for playing audio)
+        AudioFileReader audioReader = new AudioFileReader(filePath);
+        WaveOutEvent track = new WaveOutEvent();
+
+        // Let 'er rip
+        track.Init(audioReader);
+        track.Play();
+    }
+
+    private static void PlaySoundWithFader(string filePath, int fadeInTime, int fadeOutTime)
+    {
+        // Set up all required values to play a sound (reader, fader, and WaveOutEvent for playing audio)
+        AudioFileReader audioReader = new AudioFileReader(filePath);
+        FadeInOutSampleProvider fader = new FadeInOutSampleProvider(audioReader, true);
+
+        bool isTrackFading = false;
+
+        fader.BeginFadeIn(fadeInTime);
+
+        WaveOutEvent track = new WaveOutEvent();
+        track.Init(fader);
+        track.Play();
+        
+        while (track.PlaybackState == PlaybackState.Playing)
+        {
+            double songLength = audioReader.TotalTime.TotalMilliseconds;
+            double currentTime = audioReader.CurrentTime.TotalMilliseconds;
+
+            var fadeOutSpot = songLength - fadeOutTime;
+
+            // When the song reaches the fade out spot, do the thing
+            if (currentTime >= fadeOutSpot && !isTrackFading)
+            {
+                fader.BeginFadeOut(fadeOutTime);
+                isTrackFading = true;
+            }
         }
     }
 }

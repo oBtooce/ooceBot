@@ -46,6 +46,8 @@ namespace ooceBot
         public static char[] PIECE_NOTATION = new char[6] { 'B', 'K', 'N', 'Q', 'R', ' ' };
         public static char[] FILE_NOTATION = new char[8] { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
         public static int[] RANK_NOTATION = new int[8] { 1, 2, 3, 4, 5, 6, 7, 8 };
+
+        public static string SOUND_FOLDER = "C:\\Users\\Alex Waddell\\AppData\\Roaming\\Elgato\\StreamDeck\\Audio";
         #endregion
     }
 }
