@@ -48,6 +48,8 @@ namespace ooceBot
         public static int[] RANK_NOTATION = new int[8] { 1, 2, 3, 4, 5, 6, 7, 8 };
 
         public static string SOUND_FOLDER = "C:\\Users\\Alex Waddell\\AppData\\Roaming\\Elgato\\StreamDeck\\Audio";
+        public static string OBS_WEBSOCKET_ADDRESS = "ws://localhost:4455";
+        public static string OBS_WEBSOCKET_PASSWORD = "O1NWPY6OgAgJgvkB";
         #endregion
     }
 }

@@ -16,9 +16,9 @@ using TwitchLib.EventSub.Websockets;
 using TwitchLib.EventSub.Websockets.Core.EventArgs;
 using TwitchLib.Api.Helix.Models.Channels.ModifyChannelInformation;
 using TwitchLib.Api.Helix;
-using System.Data;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
+using OBSWebsocketDotNet;
 
 class Program
 {
@@ -121,8 +121,11 @@ class Program
                 Client.SendMessage(e.ChatMessage.Channel, $"https://en.wikipedia.org/wiki/Fianchetto");
                 break;
             case "!guts":
-                PlaySoundWithFader($"{BotVariables.SOUND_FOLDER}\\Berserk soundtrack - 4 Gatsu.mp3", 2000, 2000);
-                
+                if (e.ChatMessage.IsVip || e.ChatMessage.IsSubscriber || e.ChatMessage.IsModerator || e.ChatMessage.IsBroadcaster)
+                    PlaySoundWithFader($"{BotVariables.SOUND_FOLDER}\\Berserk soundtrack - 4 Gatsu.mp3", 2000, 2000);
+                else
+                    Client.SendMessage(e.ChatMessage.Channel, $"VIPs and subscribers can play song and sound commands. Want in? You know what to do...");
+
                 break;
             case "!here":
                 var command = Connection.CreateCommand();
@@ -132,10 +135,10 @@ class Program
 
                 // Initial check to see if user has been scammed today
                 command.CommandText = $"SELECT is_present FROM ChatterStatistics WHERE username = @chatter";
-                var scammedTodayValue = command.ExecuteScalar();
+                var attendanceTakenValue = command.ExecuteScalar();
 
                 // If the user exists but they have already been scammed, then prevent it from happening again
-                if (scammedTodayValue != null && (long)scammedTodayValue == 1)
+                if (attendanceTakenValue != null && (long)attendanceTakenValue == 1)
                 {
                     Client.SendMessage(e.ChatMessage.Channel, "Your attendance has already been taken. Check in next time obtoocBri");
                     return;
@@ -158,9 +161,9 @@ class Program
                 int daysInClass = attendanceCount % 10;
 
                 if (daysInClass == 0)
-                    message = $"obtoocW obtoocW Congratulations! obtoocW obtoocW    {chatterDisplayName}, to reward you for your regular attendance, you get to redeem a channel point reward for free obtoocBri";
+                    message = $"obtoocW obtoocW Congratulations! obtoocW obtoocW    {chatterDisplayName}, to reward you for your regular attendance, you get to redeem a channel point reward for free (up to a value of 2000 points) obtoocBri";
                 else
-                    message = $"{chatterDisplayName}, your attendance has been recorded. You have {daysInClass} days on record. Let's see what happens when you reach 10 days obtoocBri";
+                    message = $"{chatterDisplayName}, your attendance has been recorded. You have {daysInClass} {(daysInClass == 1 ? "day" : "days")} on record. Let's see what happens when you reach 10 days obtoocBri";
 
                 // Let 'em know
                 Client.SendMessage(e.ChatMessage.Channel, message);
@@ -206,10 +209,17 @@ class Program
                     Client.SendMessage(e.ChatMessage.Channel, $"The move for next game is {move} obtoocBri");
                 }
                 break;
+            case "!salute":
+                if (e.ChatMessage.IsVip || e.ChatMessage.IsSubscriber || e.ChatMessage.IsModerator || e.ChatMessage.IsBroadcaster)
+                    PlaySoundWithFader($"{BotVariables.SOUND_FOLDER}\\Beautiful Trumpet.mp3", 2000, 2000);
+                else
+                    Client.SendMessage(e.ChatMessage.Channel, $"VIPs and subscribers can play song and sound commands. Want in? You know what to do...");
+
+                break;
             case "!schedule":
                 Client.SendMessage(e.ChatMessage.Channel, "oBtooce's schedule is a complete lie. Just tune in whenever!");
                 
-                break;            
+                break;
             case "!spotify":
                 Client.SendMessage(e.ChatMessage.Channel, "oBtooce's Spotify page: https://open.spotify.com/user/obtoose");
                 break;
@@ -245,6 +255,26 @@ class Program
             case "!vid":
                 Client.SendMessage(e.ChatMessage.Channel, "Latest YouTube video: https://youtu.be/STmFRwBFvqc");
                 break;
+            case "!wtf":
+                if (e.ChatMessage.IsVip || e.ChatMessage.IsSubscriber || e.ChatMessage.IsModerator || e.ChatMessage.IsBroadcaster)
+                {
+                    OBSWebsocket websocket = await ConnectToOBSWebsocket();
+
+                    // The scene needs to exist in the currently selected scene, so fetch the current scene name and its items
+                    var currentScene = websocket.GetCurrentProgramScene();
+                    var sceneItems = websocket.GetSceneItemList(currentScene);
+
+                    // Need to figure out a way to make the source name not a string because this is a bad setup
+                    var wtfScene = sceneItems.First(item => item.SourceName == "WTF");
+
+                    // Essentially, this does a refresh on the selected scene by disabling and then enabling
+                    websocket.SetSceneItemEnabled(currentScene, wtfScene.ItemId, false);
+                    await Task.Delay(100);
+                    websocket.SetSceneItemEnabled(currentScene, wtfScene.ItemId, true);
+                }
+                else
+                    Client.SendMessage(e.ChatMessage.Channel, $"VIPs and subscribers can play song and sound commands. Want in? You know what to do...");
+                break;
             case "!yt":
             case "!youtube":
                 Client.SendMessage(e.ChatMessage.Channel, "oBtooce's YouTube channel: https://www.youtube.com/channel/UCjS2ciB4D3iftZS3Hj1CCWg");
@@ -255,9 +285,32 @@ class Program
             case "w":
                 Client.SendMessage(e.ChatMessage.Channel, "obtoocW obtoocW obtoocW obtoocW obtoocW");
                 break;
+            case "!":
+                Client.SendMessage(e.ChatMessage.Channel, "obtoocBri obtoocBri obtoocBri obtoocBri obtoocBri");
+                break;
             default:
                 break;
         }
+    }
+
+    private static async Task<OBSWebsocket> ConnectToOBSWebsocket()
+    {
+        OBSWebsocket websocket = new OBSWebsocket();
+
+        // Since the websocket's ConnectAsync method does not return a Task, we perform the Task functionality around the method
+        var isConnectionEstablished = new TaskCompletionSource<bool>();
+
+        websocket.Connected += (sender, e) =>
+        {
+            isConnectionEstablished.SetResult(true);
+        };
+
+        websocket.ConnectAsync(BotVariables.OBS_WEBSOCKET_ADDRESS, BotVariables.OBS_WEBSOCKET_PASSWORD);
+
+        // This await is where the connection is confirmed
+        await isConnectionEstablished.Task;
+
+        return websocket;
     }
 
     private static void InitializeAllTables()
@@ -274,7 +327,7 @@ class Program
         ";
         command.ExecuteNonQuery();
 
-        // Everybody can get scammed again!
+        // Attendance is reset for the day
         command.CommandText = "UPDATE ChatterStatistics SET is_present = 0";
         command.ExecuteNonQuery();
 
