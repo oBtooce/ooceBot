@@ -19,10 +19,19 @@ using TwitchLib.Api.Helix;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using OBSWebsocketDotNet;
+using System.Diagnostics;
+using System.Net.WebSockets;
+using OBSWebsocketDotNet.Types;
+using ooceBot.Authorization;
+using TwitchLib.PubSub.Models.Responses;
+using ooceBot.JSON;
+using ooceBot.Miscellaneous;
 
 class Program
 {
     private static TwitchClient Client { get; set; }
+
+    private static HttpClient NightbotSongRequestClient { get; set; }
 
     private static SqliteConnection Connection { get; set; } = new SqliteConnection("Data Source=TwitchStats.db");
 
@@ -36,21 +45,20 @@ class Program
         // Create all tables that can be used through Twitch chat
         InitializeAllTables();
 
-        // First things 
-        HttpClient apiCallClient = new HttpClient()
-        {
-            BaseAddress = new Uri(BotVariables.OAuthRefreshUri),
-        };
-                
-        // Start out with a newly refreshed token and assign the resulting value to the property in BotVariables for later
-        var oauthToken = await RefreshOAuthToken(apiCallClient);
-        BotVariables.OAuthToken = oauthToken;
+        // Set access tokens for Nightbot and Twitch
+        //await NighbotOAuthManager.SetNightbotOAuthToken();
+        await TwitchOAuthManager.SetTwitchOAuthToken();
 
-        // Open websocket connection to listen for channel point redemptions
-        //WebSocketMethods.StartListeningForEvents();
+        // Set up Nightbot song requests client
+        NightbotSongRequestClient = new HttpClient()
+        {
+            BaseAddress = new Uri(BotVariables.NightbotApiRequestUriValue)
+        };
+
+        NightbotSongRequestClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", BotVariables.NightbotOAuthToken);
 
         // Set up client
-        ConnectionCredentials credentials = new ConnectionCredentials(BotVariables.BotUsername, oauthToken);
+        ConnectionCredentials credentials = new ConnectionCredentials(BotVariables.BotUsername, BotVariables.TwitchOAuthToken);
         var clientOptions = new ClientOptions
         {
             MessagesAllowedInPeriod = 750,
@@ -122,7 +130,18 @@ class Program
                 break;
             case "!guts":
                 if (e.ChatMessage.IsVip || e.ChatMessage.IsSubscriber || e.ChatMessage.IsModerator || e.ChatMessage.IsBroadcaster)
-                    PlaySoundWithFader($"{BotVariables.SOUND_FOLDER}\\Berserk soundtrack - 4 Gatsu.mp3", 2000, 2000);
+                {
+                    // Get the current volume from the API
+                    int originalVolume = await VolumeControl.GetNightbotCurrentVolume(NightbotSongRequestClient);
+
+                    // Keep track of the volume for the reset after the video is done
+                    int updatedVolume = await VolumeControl.ReduceVolume(NightbotSongRequestClient, originalVolume, originalVolume);
+
+                    PlaySoundWithFader($"{BotVariables.SoundFolder}\\Berserk soundtrack - 4 Gatsu.mp3", 2000, 2000);
+
+                    // Reset the volume to its previous level
+                    await VolumeControl.IncreaseVolume(NightbotSongRequestClient, updatedVolume, originalVolume);
+                }
                 else
                     Client.SendMessage(e.ChatMessage.Channel, $"VIPs and subscribers can play song and sound commands. Want in? You know what to do...");
 
@@ -133,18 +152,18 @@ class Program
                 var chatterDisplayName = e.ChatMessage.DisplayName; // Maintains capitalization
                 command.Parameters.AddWithValue("@chatter", chatterDisplayName);
 
-                // Initial check to see if user has been scammed today
+                // Initial check to see if user has declared their presence today
                 command.CommandText = $"SELECT is_present FROM ChatterStatistics WHERE username = @chatter";
                 var attendanceTakenValue = command.ExecuteScalar();
 
-                // If the user exists but they have already been scammed, then prevent it from happening again
+                // If the user exists but attendance was already taken, then prevent it from happening again
                 if (attendanceTakenValue != null && (long)attendanceTakenValue == 1)
                 {
                     Client.SendMessage(e.ChatMessage.Channel, "Your attendance has already been taken. Check in next time obtoocBri");
                     return;
                 }
 
-                // Create a new scam record or update an existing one
+                // Create a new attendance record or update an existing one
                 command.CommandText = $@"
                     INSERT INTO ChatterStatistics (username, attendance_count, is_present) VALUES (@chatter, 1, 1)
                     ON CONFLICT(username)
@@ -153,7 +172,7 @@ class Program
 
                 command.ExecuteNonQuery();
 
-                // Get the relevant scam total from the DB
+                // Get the relevant attendance total from the DB
                 command.CommandText = $"SELECT attendance_count FROM ChatterStatistics WHERE username = @chatter";
                 int attendanceCount = Convert.ToInt32(command.ExecuteScalar());
 
@@ -211,7 +230,18 @@ class Program
                 break;
             case "!salute":
                 if (e.ChatMessage.IsVip || e.ChatMessage.IsSubscriber || e.ChatMessage.IsModerator || e.ChatMessage.IsBroadcaster)
-                    PlaySoundWithFader($"{BotVariables.SOUND_FOLDER}\\Beautiful Trumpet.mp3", 2000, 2000);
+                {
+                    // Get the current volume from the API
+                    int originalVolume = await VolumeControl.GetNightbotCurrentVolume(NightbotSongRequestClient);
+
+                    // Keep track of the volume for the reset after the video is done
+                    int updatedVolume = await VolumeControl.ReduceVolume(NightbotSongRequestClient, originalVolume, originalVolume);
+
+                    PlaySoundWithFader($"{BotVariables.SoundFolder}\\Beautiful Trumpet.mp3", 2000, 2000);
+
+                    // Reset the volume to its previous level
+                    await VolumeControl.IncreaseVolume(NightbotSongRequestClient, updatedVolume, originalVolume);
+                }
                 else
                     Client.SendMessage(e.ChatMessage.Channel, $"VIPs and subscribers can play song and sound commands. Want in? You know what to do...");
 
@@ -235,8 +265,8 @@ class Program
                     TwitchAPI api = new TwitchAPI();
 
                     // Update the API settings with client ID and OAuth token
-                    api.Settings.ClientId = BotVariables.ClientID;
-                    api.Settings.AccessToken = BotVariables.OAuthToken.Split(":").Last(); // To work with TwitchAPI, the access token can not have the "oauth:" prefix, so we chop it off
+                    api.Settings.ClientId = BotVariables.TwitchClientID;
+                    api.Settings.AccessToken = BotVariables.TwitchOAuthToken.Split(":").Last(); // To work with TwitchAPI, the access token can not have the "oauth:" prefix, so we chop it off
 
                     // Get the broadcaster ID for the channel modification request
                     var users = await api.Helix.Users.GetUsersAsync(logins: new List<string> { BotVariables.ChannelToJoin });
@@ -260,6 +290,12 @@ class Program
                 {
                     OBSWebsocket websocket = await ConnectToOBSWebsocket();
 
+                    // Get the current volume from the API
+                    int volume = await VolumeControl.GetNightbotCurrentVolume(NightbotSongRequestClient);
+
+                    // Keep track of the volume for the reset after the video is done
+                    volume = await VolumeControl.ReduceVolume(NightbotSongRequestClient, volume, 50);
+
                     // The scene needs to exist in the currently selected scene, so fetch the current scene name and its items
                     var currentScene = websocket.GetCurrentProgramScene();
                     var sceneItems = websocket.GetSceneItemList(currentScene);
@@ -267,10 +303,10 @@ class Program
                     // Need to figure out a way to make the source name not a string because this is a bad setup
                     var wtfScene = sceneItems.First(item => item.SourceName == "WTF");
 
-                    // Essentially, this does a refresh on the selected scene by disabling and then enabling
-                    websocket.SetSceneItemEnabled(currentScene, wtfScene.ItemId, false);
-                    await Task.Delay(100);
-                    websocket.SetSceneItemEnabled(currentScene, wtfScene.ItemId, true);
+                    await PlayVideoAndHideAtEnd(websocket, currentScene, wtfScene);
+
+                    // Reset the volume after the video is done
+                    await VolumeControl.IncreaseVolume(NightbotSongRequestClient, volume, 50);
                 }
                 else
                     Client.SendMessage(e.ChatMessage.Channel, $"VIPs and subscribers can play song and sound commands. Want in? You know what to do...");
@@ -305,7 +341,7 @@ class Program
             isConnectionEstablished.SetResult(true);
         };
 
-        websocket.ConnectAsync(BotVariables.OBS_WEBSOCKET_ADDRESS, BotVariables.OBS_WEBSOCKET_PASSWORD);
+        websocket.ConnectAsync(BotVariables.OBSWebsocketAddress, BotVariables.OBSWebsocketPassword);
 
         // This await is where the connection is confirmed
         await isConnectionEstablished.Task;
@@ -313,6 +349,9 @@ class Program
         return websocket;
     }
 
+    /// <summary>
+    /// Creates all required tables for stream.
+    /// </summary>
     private static void InitializeAllTables()
     {
         var command = Connection.CreateCommand();
@@ -336,36 +375,10 @@ class Program
         return;
     }
 
-    private static async Task<string> RefreshOAuthToken(HttpClient client)
-    {
-        // Build the POST content
-        var formData = new Dictionary<string, string>
-        {
-            { "client_id", BotVariables.ClientID },
-            { "client_secret", BotVariables.ClientSecret },
-            { "grant_type", "refresh_token" },
-            { "refresh_token", BotVariables.OAuthRefreshToken }
-        };
-
-        HttpContent requestContent = new FormUrlEncodedContent(formData);
-        HttpResponseMessage response = await client.PostAsync(BotVariables.OAuthRefreshUri, requestContent);
-
-        if (response.IsSuccessStatusCode)
-        {
-            string responseBody = await response.Content.ReadAsStringAsync();
-            using (JsonDocument doc = JsonDocument.Parse(responseBody))
-            {
-                return $"oauth:{doc.RootElement.GetProperty("access_token")}";
-            }
-        }
-        else
-        {
-            Console.WriteLine($"Error: {response.StatusCode}");
-
-            return string.Empty;
-        }
-    }
-
+    /// <summary>
+    /// Plays a sound from a file with no other effects.
+    /// </summary>
+    /// <param name="filePath">The path to the file</param>
     private static void PlaySound(string filePath)
     {
         // Set up all required values to play a sound (reader and WaveOutEvent for playing audio)
@@ -377,6 +390,12 @@ class Program
         track.Play();
     }
 
+    /// <summary>
+    /// Plays a sound from a file with specified fade effects.
+    /// </summary>
+    /// <param name="filePath">The path to the file</param>
+    /// <param name="fadeInTime">The specified fade-in time</param>
+    /// <param name="fadeOutTime">The specified fade-out time</param>
     private static void PlaySoundWithFader(string filePath, int fadeInTime, int fadeOutTime)
     {
         // Set up all required values to play a sound (reader, fader, and WaveOutEvent for playing audio)
@@ -405,5 +424,33 @@ class Program
                 isTrackFading = true;
             }
         }
+    }
+
+    /// <summary>
+    /// Plays a media source in OBS, then manually hides the source when done. The manual hiding is required to prevent the source from auto-playing on future scene selection.
+    /// </summary>
+    /// <param name="websocket">An OBS websocket object</param>
+    /// <param name="currentScene">The scene that contains the media source</param>
+    /// <param name="source">A media source object</param>
+    private static async Task PlayVideoAndHideAtEnd(OBSWebsocket websocket, string currentScene, SceneItemDetails source)
+    {
+        websocket.TriggerMediaInputAction(source.SourceName, "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART");
+
+        await Task.Delay(100);
+
+        // Get the duration of the video so that the source can be properly hidden after playback
+        // (for some reason, after the media is done playing, the source is still shown as enabled)
+        var mediaStatus = websocket.GetMediaInputStatus(source.SourceName);
+        var videoLength = mediaStatus.Duration;
+
+        // Enable, then disable after the clip is done (media needs to be active so we can retrieve the duration)
+        websocket.SetSceneItemEnabled(currentScene, source.ItemId, true);
+
+        await Task.Delay((int)videoLength - 100);
+
+        // Now that the video has ended, disable the source
+        websocket.SetSceneItemEnabled(currentScene, source.ItemId, false);
+
+        return;
     }
 }
