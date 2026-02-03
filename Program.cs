@@ -24,7 +24,6 @@ using System.Net.WebSockets;
 using OBSWebsocketDotNet.Types;
 using ooceBot.Authorization;
 using TwitchLib.PubSub.Models.Responses;
-using ooceBot.JSON;
 using ooceBot.Miscellaneous;
 
 class Program
