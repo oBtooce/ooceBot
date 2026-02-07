@@ -25,6 +25,7 @@ using OBSWebsocketDotNet.Types;
 using ooceBot.Authorization;
 using TwitchLib.PubSub.Models.Responses;
 using ooceBot.Miscellaneous;
+using ooceBot.SQL;
 
 class Program
 {
@@ -38,11 +39,8 @@ class Program
 
     public static async Task Main(string[] args)
     {
-        // Open the connection to the DB
-        Connection.Open();
-
         // Create all tables that can be used through Twitch chat
-        InitializeAllTables();
+        TableSQLMethods.InitializeAllTables(Connection);
 
         // Set access tokens for Nightbot and Twitch
         //await NighbotOAuthManager.SetNightbotOAuthToken();
@@ -110,7 +108,7 @@ class Program
                     ChessCommandMethods.AuditChatter(Client, e, commandParts.Last());
                 else
                     Client.SendMessage(e.ChatMessage.Channel, $"Hmm...something went wrong. Make sure you are using a valid username and try again with the following format: !audit (username)");
-                break;
+                break;            
             case "!boner":
                 Client.SendMessage(e.ChatMessage.Channel, $"don't get married");
                 break;
@@ -152,7 +150,7 @@ class Program
                 command.Parameters.AddWithValue("@chatter", chatterDisplayName);
 
                 // Initial check to see if user has declared their presence today
-                command.CommandText = $"SELECT is_present FROM ChatterStatistics WHERE username = @chatter";
+                command.CommandText = $"SELECT is_present FROM ChatterAttendance WHERE username = @chatter";
                 var attendanceTakenValue = command.ExecuteScalar();
 
                 // If the user exists but attendance was already taken, then prevent it from happening again
@@ -164,7 +162,7 @@ class Program
 
                 // Create a new attendance record or update an existing one
                 command.CommandText = $@"
-                    INSERT INTO ChatterStatistics (username, attendance_count, is_present) VALUES (@chatter, 1, 1)
+                    INSERT INTO ChatterAttendance (username, attendance_count, is_present) VALUES (@chatter, 1, 1)
                     ON CONFLICT(username)
                     DO UPDATE SET attendance_count = attendance_count + 1, is_present = 1
                 ";
@@ -172,7 +170,7 @@ class Program
                 command.ExecuteNonQuery();
 
                 // Get the relevant attendance total from the DB
-                command.CommandText = $"SELECT attendance_count FROM ChatterStatistics WHERE username = @chatter";
+                command.CommandText = $"SELECT attendance_count FROM ChatterAttendance WHERE username = @chatter";
                 int attendanceCount = Convert.ToInt32(command.ExecuteScalar());
 
                 string message;
@@ -284,6 +282,50 @@ class Program
             case "!vid":
                 Client.SendMessage(e.ChatMessage.Channel, "Latest YouTube video: https://youtu.be/STmFRwBFvqc");
                 break;
+            case "!wager":
+                string wagerAmount = commandParts.Last().ToLower();
+
+                if (!string.IsNullOrEmpty(wagerAmount))
+                {
+                    if (wagerAmount == "all")
+                    {
+                        Connection.Open();
+
+                        var wager = Connection.CreateCommand();
+                        int totalPoints = 0;
+
+                        wager.CommandText = $"SELECT total_points FROM WagerStats";
+                        var result = wager.ExecuteScalar();
+
+                        if (result != null)
+                            totalPoints = (int)result;
+
+                        // Calculate whether or not the wager won or lost
+                        WagerRecord? newValues = WagerLogic.DecideWagerOutcomeAndRecordResults(totalPoints, e.ChatMessage.DisplayName, Random, Connection);
+
+                        if (newValues != null)
+                        {
+                            if (newValues.DidWinWager)
+                            {
+                                string twitchMessage = $"obtoocW obtoocW {e.ChatMessage.DisplayName}, wager #{newValues.TimesWagered} was a HUGE WIN obtoocBri Looks like you've got {newValues.TotalPoints} stacks.";
+
+                                Client.SendMessage(e.ChatMessage.Channel, $"obtoocW obtoocW {e.ChatMessage.DisplayName}, wager #{newValues.TimesWagered} was a HUGE WIN obtoocBri Your new total is {newValues.TotalPoints}!");
+                            }
+                            else
+                                Client.SendMessage(e.ChatMessage.Channel, "Latest YouTube video: https://youtu.be/STmFRwBFvqc");
+                        }
+                        else
+                            Client.SendMessage(e.ChatMessage.Channel, "No suitable name found.");
+
+                        Connection.Close();
+                    }
+                }
+                else
+                {
+                    Client.SendMessage(e.ChatMessage.Channel, "Don't forget the wager amount! !wager (number between 1 and 100 or 'all')");
+                }
+
+                break;
             case "!wtf":
                 if (e.ChatMessage.IsVip || e.ChatMessage.IsSubscriber || e.ChatMessage.IsModerator || e.ChatMessage.IsBroadcaster)
                 {
@@ -346,33 +388,7 @@ class Program
         await isConnectionEstablished.Task;
 
         return websocket;
-    }
-
-    /// <summary>
-    /// Creates all required tables for stream.
-    /// </summary>
-    private static void InitializeAllTables()
-    {
-        var command = Connection.CreateCommand();
-
-        // Table creation
-        command.CommandText = @"
-            CREATE TABLE IF NOT EXISTS ChatterStatistics (
-                username TEXT PRIMARY KEY,
-                attendance_count INTEGER DEFAULT 0,
-                is_present INTEGER NOT NULL DEFAULT 0
-            )
-        ";
-        command.ExecuteNonQuery();
-
-        // Attendance is reset for the day
-        command.CommandText = "UPDATE ChatterStatistics SET is_present = 0";
-        command.ExecuteNonQuery();
-
-        Connection.Close();
-
-        return;
-    }
+    }    
 
     /// <summary>
     /// Plays a sound from a file with no other effects.
