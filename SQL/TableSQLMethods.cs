@@ -77,7 +77,7 @@ namespace ooceBot.SQL
                 CREATE TABLE IF NOT EXISTS ArcadeStats (
                     userID TEXT PRIMARY KEY,
                     times_wagered INTEGER NOT NULL DEFAULT 0,
-                    total_points INTEGER NOT NULL DEFAULT 0,
+                    total_tokens INTEGER NOT NULL DEFAULT 0,
                     largest_wager INTEGER NOT NULL DEFAULT 0,
                     high_score INTEGER NOT NULL DEFAULT 0,
                     winning_streak INTEGER NOT NULL DEFAULT 0,

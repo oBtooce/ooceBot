@@ -10,23 +10,15 @@ namespace ooceBot.Miscellaneous
     {
         public int TimesWagered;
 
-        public int TotalPoints;
+        public int TotalTokens;
 
         public int LargestWager;
 
-        public bool IsLargestWager;
-
         public int HighScore;
-
-        public bool DidHighScoreIncrease;
 
         public int WinningStreak;
 
-        public bool DidWinStreakIncrease;
-
         public int LongestWinningStreak;
-
-        public bool DidLongestStreakIncrease;
 
         public bool DidWinWager;
     }

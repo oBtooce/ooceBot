@@ -29,6 +29,8 @@ using ooceBot.SQL;
 using ooceBot.Sounds;
 using ooceBot.AudioVideo;
 using System.Configuration;
+using System.Runtime.CompilerServices;
+using TwitchLib.Api.Helix.Models.Charity.GetCharityCampaign;
 
 class Program
 {
@@ -90,30 +92,44 @@ class Program
 
     private static async void Client_OnMessageReceived(object sender, OnMessageReceivedArgs e)
     {
-        string[] commandParts = e.ChatMessage.Message.Split(new char[] { ' ' }, 2);
+        string[] messageParts = e.ChatMessage.Message.Split(new char[] { ' ' }, 2);
 
         // Open new connection
         Connection.Open();
 
-        switch (commandParts.First().ToLower())
+        var command = Connection.CreateCommand();
+        command.Parameters.AddWithValue("@userId", e.ChatMessage.UserId);
+
+        switch (messageParts.First().ToLower())
         {
             case "!addquote":
-                if (commandParts.Last() != string.Empty)
+                if (messageParts.Last() != string.Empty)
                 {
-                    QuoteCommandMethods.AddQuote(commandParts.Last());
+                    QuoteCommandMethods.AddQuote(messageParts.Last());
                     Client.SendMessage(e.ChatMessage.Channel, $"Quote added. Thank you for creating history in oBtooce's stream!");
                 }
                 else
                     Client.SendMessage(e.ChatMessage.Channel, $"When using the !addquote command, don't forget to include the quote! The command looks like this: !addquote \"insert quote here\"");
                 break;
             case "!audit":
-                if (commandParts[1] != null)
-                    ChessCommandMethods.AuditChatter(Client, e, commandParts.Last());
+                if (messageParts[1] != null)
+                    ChessCommandMethods.AuditChatter(Client, e, messageParts.Last());
                 else
                     Client.SendMessage(e.ChatMessage.Channel, $"Hmm...something went wrong. Make sure you are using a valid username and try again with the following format: !audit (username)");
                 break;            
             case "!boner":
                 Client.SendMessage(e.ChatMessage.Channel, $"don't get married");
+                break;
+            case "!buyin":
+                // Add new user or ignore if ID is already present
+                ArcadeMethods.SetupPlayer(Connection, e.ChatMessage.UserId);
+
+                // Check balances for player and provide tokens if balance is empty
+                ArcadeMethods.HandleBuyins(Connection, e.ChatMessage.UserId, BotVariables.DEFAULT_BUYIN);
+
+                Client.SendMessage(e.ChatMessage.Channel, $"{e.ChatMessage.DisplayName}, you now have {BotVariables.DEFAULT_BUYIN} tokens to play with. Have fun obtoocBri");
+                break;
+            case "!commands":
                 break;
             case "!croissant":
                 Client.SendMessage(e.ChatMessage.Channel, $"https://en.wikipedia.org/wiki/En_passant");
@@ -170,12 +186,8 @@ class Program
 
                 DBQueryMethods.VerifyExistenceInChattersTable(Connection, e.ChatMessage);
 
-                var command = Connection.CreateCommand();
-
-                command.Parameters.AddWithValue("@chatterid", chatterUserID);
-
                 // Initial check to see if user has declared their presence today
-                command.CommandText = $"SELECT is_present FROM ChatterAttendance WHERE userID = @chatterid";
+                command.CommandText = $"SELECT is_present FROM ChatterAttendance WHERE userID = @userId";
                 var attendanceTakenValue = command.ExecuteScalar();
 
                 // If the user exists but attendance was already taken, then prevent it from happening again
@@ -195,7 +207,7 @@ class Program
                 command.ExecuteNonQuery();
 
                 // Get the relevant attendance total from the DB
-                command.CommandText = $"SELECT attendance_count FROM ChatterAttendance WHERE userID = @chatterid";
+                command.CommandText = $"SELECT attendance_count FROM ChatterAttendance WHERE userID = @userId";
                 int attendanceCount = Convert.ToInt32(command.ExecuteScalar());
 
                 string message;
@@ -213,48 +225,63 @@ class Program
                 Client.SendMessage(e.ChatMessage.Channel, $"Blackjack");
                 break;
             case "!lurk":
-                Client.SendMessage(e.ChatMessage.Channel, $"{e.ChatMessage.Username}, your continued support is greatly appreciated. Talk to you soon!");
+                Client.SendMessage(e.ChatMessage.Channel, $"{e.ChatMessage.Username}, your continued support is greatly appreciated. Talk to you soon obtoocBri");
                 break;
             case "!play":
-                string arcadeTokens = commandParts.Last();
-
-                // Percentages are the only accepted values, so make sure that the value is between 1 and 100 inclusive
-                if (int.TryParse(arcadeTokens, out int amount) && amount > 0 && amount <= 100)
+                // Make sure that the user exists before doing anything
+                if (!ArcadeMethods.CheckForPlayer(Connection, e.ChatMessage.UserId))
                 {
-                    Connection.Open();
+                    Client.SendMessage(e.ChatMessage.Channel, $"Looks like this is your first time at the arcade. Type !buyin to get your first set of tokens obtoocBri");
+                    break;
+                }
 
-                    int totalPoints = ArcadeMethods.GetTotalTokens(Connection);                    
+                string arcadeTokens = messageParts.Last();
+
+                if (arcadeTokens.EndsWith("%") && int.TryParse(arcadeTokens.Split("%").First(), out int percentageValue) == true && percentageValue > 0 && percentageValue <= 100) // Percentage amount
+                {
+                    int totalTokens = ArcadeMethods.GetTotalTokens(Connection);
 
                     // Calculate whether or not the wager won or lost
-                    ArcadeStats? newValues = ArcadeMethods.DecideTokenOutcome(totalPoints, e.ChatMessage.DisplayName, Random, Connection);
+                    ArcadeStats arcadeRecord = ArcadeMethods.GetPlayerCurrentStats(Connection, e.ChatMessage.UserId);
+                    arcadeRecord.DidWinWager = ArcadeMethods.DecideTokenOutcome(Random);
 
-                    if (newValues != null)
+                    ArcadeMethods.UpdateArcadeRecord(ref arcadeRecord, percentageValue, Connection, e.ChatMessage.UserId);
+
+                    if (arcadeRecord.DidWinWager)
+                        Client.SendMessage(e.ChatMessage.Channel, $"obtoocW Nice win, {e.ChatMessage.DisplayName}! obtoocW Looks like you've got {arcadeRecord.TotalTokens} tokens to spend.");
+                    else
+                        Client.SendMessage(e.ChatMessage.Channel, $"Oof...no luck this time, {e.ChatMessage.DisplayName}. Your new token total is {arcadeRecord.TotalTokens}.");
+                }
+                else if (int.TryParse(arcadeTokens, out int tokenAmount) == true) // Flat token amount
+                {
+                    // Verify if the token amount is within the user's total token stash and proceed if so, else jump out with a warning
+                    int totalTokens = ArcadeMethods.GetTotalTokens(Connection);
+                                        
+                    if (totalTokens > tokenAmount)
                     {
-                        if (newValues.DidWinWager)
-                        {
-                            string twitchMessage = $"obtoocW Nice win, {e.ChatMessage.DisplayName}! obtoocW Looks like you've got {newValues.TotalPoints} tickets to spend.";
+                        // Calculate whether or not the wager won or lost
+                        ArcadeStats arcadeRecord = ArcadeMethods.GetPlayerCurrentStats(Connection, e.ChatMessage.UserId);
+                        arcadeRecord.DidWinWager = ArcadeMethods.DecideTokenOutcome(Random);
 
-                            Client.SendMessage(e.ChatMessage.Channel, $"obtoocW obtoocW {e.ChatMessage.DisplayName}, wager #{newValues.TimesWagered} was a HUGE WIN obtoocBri Your new total is {newValues.TotalPoints}!");
-                        }
+                        ArcadeMethods.UpdateArcadeRecord(ref arcadeRecord, tokenAmount, Connection, e.ChatMessage.UserId);
+
+                        if (arcadeRecord.DidWinWager)
+                            Client.SendMessage(e.ChatMessage.Channel, $"obtoocW Nice win, {e.ChatMessage.DisplayName}! obtoocW Looks like you've got {arcadeRecord.TotalTokens} tokens to spend.");
                         else
-                            Client.SendMessage(e.ChatMessage.Channel, "Latest YouTube video: https://youtu.be/STmFRwBFvqc");
+                            Client.SendMessage(e.ChatMessage.Channel, $"Oof...no luck this time, {e.ChatMessage.DisplayName}. Your new token total is {arcadeRecord.TotalTokens}.");
                     }
                     else
-                        Client.SendMessage(e.ChatMessage.Channel, "No suitable name found.");
-
-                    Connection.Close();
+                        Client.SendMessage(e.ChatMessage.Channel, "You don't have enough tokens to make that bet. Try again later obtoocBri");
                 }
                 else
-                {
-                    Client.SendMessage(e.ChatMessage.Channel, "");
-                }
+                    Client.SendMessage(e.ChatMessage.Channel, "This wager seems...off. Try again with either a number (50) or a valid percentage (50%).");
 
                 break;
             case "!quote":
                 // Check if a line number has been provided and validate it, otherwise return a random quote from the text file
-                if (commandParts.Last() != null)
+                if (messageParts.Last() != null)
                 {
-                    var isNumeric = int.TryParse(commandParts.Last(), out int result);
+                    var isNumeric = int.TryParse(messageParts.Last(), out int result);
 
                     if (isNumeric == false)
                     {
@@ -311,8 +338,8 @@ class Program
                 Client.SendMessage(e.ChatMessage.Channel, "oBtooce's Spotify page: https://open.spotify.com/user/obtoose");
                 break;
             case "!stats":
-                if (commandParts.Last() != string.Empty)
-                    ChessCommandMethods.GetChesscomStats(Client, e, commandParts.Last());
+                if (messageParts.Last() != string.Empty)
+                    ChessCommandMethods.GetChesscomStats(Client, e, messageParts.Last());
                 else
                     Client.SendMessage(e.ChatMessage.Channel, $"Hmm...something went wrong. Make sure you are using a valid username and try again with the following format: !stats (username)");
                 break;
@@ -320,7 +347,7 @@ class Program
                 Client.SendMessage(e.ChatMessage.Channel, $"you gotta be bad, you gotta be bold, you gotta be wiser, you gotta be hard, you gotta be tough, you gotta be stronger, you gotta be cool, you gotta be calm, you gotta stay together, all i know love will save the day - corrected");
                 break;
             case "!title":
-                if (!string.IsNullOrEmpty(commandParts.Last()))
+                if (!string.IsNullOrEmpty(messageParts.Last()))
                 {
                     TwitchAPI api = new TwitchAPI();
 
@@ -332,9 +359,9 @@ class Program
                     var users = await api.Helix.Users.GetUsersAsync(logins: new List<string> { BotVariables.ChannelToJoin });
                     string broadcasterId = users.Users[0].Id;
 
-                    await api.Helix.Channels.ModifyChannelInformationAsync(broadcasterId, new ModifyChannelInformationRequest { Title = commandParts.Last() });
+                    await api.Helix.Channels.ModifyChannelInformationAsync(broadcasterId, new ModifyChannelInformationRequest { Title = messageParts.Last() });
 
-                    Client.SendMessage(e.ChatMessage.Channel, $"Title has been updated to \"{commandParts.Last()}\"");
+                    Client.SendMessage(e.ChatMessage.Channel, $"Title has been updated to \"{messageParts.Last()}\"");
                 }
 
                 break;
@@ -389,6 +416,26 @@ class Program
                 break;
             default:
                 break;
-        }
+        }        
     }
+
+    // Need to figure out what to do here in terms of having a timer play
+    //private static async Task TimerMessages(CancellationToken cancellationToken = default)
+    //{
+    //    // Set a message to go off every 30 minutes
+    //    using var timer = new PeriodicTimer(TimeSpan.FromMinutes(30));
+
+    //    while (await timer.WaitForNextTickAsync(cancellationToken))
+    //    {
+    //        try
+    //        {
+    //            Client.SendMessage(e.ChatMessage.Channel, "obtoocBri obtoocBri obtoocBri obtoocBri obtoocBri");
+    //        }
+    //        catch (OperationCanceledException)
+    //        {
+    //            // Handle cancellation
+    //            break;
+    //        }
+    //    }
+    //}
 }

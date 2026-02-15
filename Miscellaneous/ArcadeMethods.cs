@@ -5,165 +5,145 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TwitchLib.Api.Helix.Models.Charity.GetCharityCampaign;
 
 namespace ooceBot.Miscellaneous
 {
     public static class ArcadeMethods
     {
-        public static ArcadeStats? DecideTokenOutcome(int amount, string displayName, Random random, SqliteConnection connection)
+        /// <summary>
+        /// Checks to see if the user is part of the arcade system
+        /// </summary>
+        /// <param name="connection">The SQLite connection object</param>
+        /// <param name="userId">The user's unique Twitch ID</param>
+        /// <returns></returns>
+        public static bool CheckForPlayer(SqliteConnection connection, string userId)
         {
-            ArcadeStats? currentStats = null;
+            var command = connection.CreateCommand();
+            command.Parameters.AddWithValue("@userId", userId);
 
+            command.CommandText = "SELECT * FROM ArcadeStats WHERE userID = @userId";
+
+            return command.ExecuteScalar() != null;
+        }
+
+        public static bool DecideTokenOutcome(Random random)
+        {
             const int UPPER_LIMIT = 100;
-            decimal midpoint = Math.Ceiling((decimal)(UPPER_LIMIT / 2));
+            const int OFFSET = 10;
+            decimal midpoint = Math.Ceiling((decimal)(UPPER_LIMIT / 2)) - OFFSET;
 
             // Something really basic like a coinflip for now, but with a larger number set
             int value = random.Next(UPPER_LIMIT + 1); // 0 to 100, Next() does not include the specified upper limit, hence the +1 to include 100
-            bool didWinWager = value >= midpoint;
+            
+            return value >= midpoint;
+        }
 
-            if (didWinWager)
+        public static ArcadeStats GetPlayerCurrentStats(SqliteConnection connection, string userId)
+        {
+            var currentStats = new ArcadeStats();
+
+            var chatterStatistics = connection.CreateCommand();
+            chatterStatistics.Parameters.AddWithValue("@userId", userId);
+
+            chatterStatistics.CommandText = "SELECT * FROM ArcadeStats WHERE userID = @userId";
+
+            using (SqliteDataReader reader = chatterStatistics.ExecuteReader())
             {
-                connection.Open();
-
-                var chatterStatistics = connection.CreateCommand();
-                chatterStatistics.CommandText = $"SELECT * FROM ArcadeStats WHERE username = {displayName}";
-                
-                using (SqliteDataReader reader = chatterStatistics.ExecuteReader())
+                // We only want the first record since there will only ever be one returned record, so if is a fine replacement for while
+                if (reader.Read())
                 {
-                    // We only want the first record since there will only ever be one returned record, so if is a fine replacement for while
-                    if (reader.Read())
+                    currentStats = new ArcadeStats()
                     {
-                        currentStats = new ArcadeStats()
-                        {
-                            TimesWagered = reader.GetInt32(reader.GetOrdinal("times_wagered")),
-                            TotalPoints = reader.GetInt32(reader.GetOrdinal("total_points")),
-                            LargestWager = reader.GetInt32(reader.GetOrdinal("largest_wager")),
-                            HighScore = reader.GetInt32(reader.GetOrdinal("high_score")),
-                            WinningStreak = reader.GetInt32(reader.GetOrdinal("winning_streak")),
-                            LongestWinningStreak = reader.GetInt32(reader.GetOrdinal("longest_winning_streak")),
-                            DidWinWager = true
-                        };
-
-                        var currentTotalPoints = currentStats.TotalPoints;
-                        var currentHighScore = currentStats.HighScore;
-                        var currentLongestStreak = currentStats.LongestWinningStreak;
-
-                        // Update all required values
-                        currentStats.TimesWagered++;
-                        currentStats.TotalPoints = currentTotalPoints + amount;
-                        currentStats.LargestWager = amount > currentStats.LargestWager ? amount : currentStats.LargestWager;
-                        currentStats.IsLargestWager = amount > currentStats.LargestWager ? true : false;
-                        currentStats.HighScore = currentStats.TotalPoints > currentHighScore ? currentStats.TotalPoints : currentHighScore;
-                        currentStats.DidHighScoreIncrease = currentStats.HighScore > currentHighScore ? true : false;
-                        currentStats.WinningStreak = currentStats.WinningStreak + 1;
-                        currentStats.DidWinStreakIncrease = true;
-                        currentStats.LongestWinningStreak = currentStats.WinningStreak > currentLongestStreak ? currentStats.WinningStreak : currentLongestStreak;
-                        currentStats.DidLongestStreakIncrease = currentStats.LongestWinningStreak > currentLongestStreak ? true : false;
-                    }
-                    else
-                        throw new Exception("No suitable record found in database.");
-                }
-
-                // Ensure that a wager record was populated accordingly and then populate the DB
-                if (currentStats != null)
-                {
-                    chatterStatistics.CommandText = $@"
-    UPDATE ArcadeStats 
-    SET 
-        times_wagered = {currentStats.TimesWagered},
-        total_points = {currentStats.TotalPoints},
-        largest_wager = {currentStats.LargestWager},
-        high_score = {currentStats.HighScore},
-        winning_streak = {currentStats.WinningStreak},
-        longest_winning_streak = {currentStats.LongestWinningStreak}
-    WHERE username = {displayName}";
-
-                    chatterStatistics.ExecuteNonQuery();
-                    connection.Close();
-
-                    return currentStats;
+                        TimesWagered = reader.GetInt32(reader.GetOrdinal("times_wagered")),
+                        TotalTokens = reader.GetInt32(reader.GetOrdinal("total_tokens")),
+                        LargestWager = reader.GetInt32(reader.GetOrdinal("largest_wager")),
+                        HighScore = reader.GetInt32(reader.GetOrdinal("high_score")),
+                        WinningStreak = reader.GetInt32(reader.GetOrdinal("winning_streak")),
+                        LongestWinningStreak = reader.GetInt32(reader.GetOrdinal("longest_winning_streak")),
+                        DidWinWager = true
+                    };
                 }
                 else
-                {
-                    connection.Close();
-                    return null;
-                }
+                    throw new Exception("No suitable record found in database.");
             }
-            else // We lost the wager AAAAAAAAAAAAAAAAAAAAAAAAAAA
-            {
-                connection.Open();
 
-                var chatterStatistics = connection.CreateCommand();
-                chatterStatistics.CommandText = $"SELECT * FROM ArcadeStats WHERE username = {displayName}";
-
-                using (SqliteDataReader reader = chatterStatistics.ExecuteReader())
-                {
-                    // We only want the first record since there will only ever be one returned record, so if is a fine replacement for while
-                    if (reader.Read())
-                    {
-                        currentStats = new ArcadeStats()
-                        {
-                            TimesWagered = reader.GetInt32(reader.GetOrdinal("times_wagered")),
-                            TotalPoints = reader.GetInt32(reader.GetOrdinal("total_points")),
-                            LargestWager = reader.GetInt32(reader.GetOrdinal("largest_wager")),
-                            HighScore = reader.GetInt32(reader.GetOrdinal("high_score")),
-                            WinningStreak = reader.GetInt32(reader.GetOrdinal("winning_streak")),
-                            LongestWinningStreak = reader.GetInt32(reader.GetOrdinal("longest_winning_streak")),
-                            DidWinWager = false
-                        };
-
-                        var currentHighScore = currentStats.HighScore;
-
-                        // Update all required values
-                        currentStats.TimesWagered++;
-                        currentStats.TotalPoints = currentStats.TotalPoints - amount;
-                        currentStats.LargestWager = amount > currentStats.LargestWager ? amount : currentStats.LargestWager;
-                        currentStats.IsLargestWager = false;
-                        currentStats.HighScore = currentStats.TotalPoints > currentHighScore ? currentStats.TotalPoints : currentHighScore;
-                        currentStats.DidHighScoreIncrease = false;
-                        currentStats.WinningStreak = 0;
-                        currentStats.DidWinStreakIncrease = false;
-                        currentStats.LongestWinningStreak = currentStats.WinningStreak > currentStats.LongestWinningStreak ? currentStats.WinningStreak : currentStats.LongestWinningStreak;
-                        currentStats.DidLongestStreakIncrease = false;
-                    }
-                    else
-                        throw new Exception("No suitable record found in database.");
-                }
-
-                // Ensure that a wager record was populated accordingly and then populate the DB
-                if (currentStats != null)
-                {
-                    chatterStatistics.CommandText = $@"
-    UPDATE currentStats 
-    SET 
-        times_wagered = {currentStats.TimesWagered},
-        total_points = {currentStats.TotalPoints},
-        largest_wager = {currentStats.LargestWager},
-        high_score = {currentStats.HighScore},
-        winning_streak = {currentStats.WinningStreak},
-        longest_winning_streak = {currentStats.LongestWinningStreak}
-    WHERE username = {displayName}";
-
-                    chatterStatistics.ExecuteNonQuery();
-                    connection.Close();
-
-                    return currentStats;
-                }
-                else
-                {
-                    connection.Close();
-                    return null;
-                }
-            }
+            return currentStats;
         }
 
         public static int GetTotalTokens(SqliteConnection Connection)
         {
             var tokenTotal = Connection.CreateCommand();
 
-            tokenTotal.CommandText = $"SELECT total_points FROM ArcadeStats";
+            tokenTotal.CommandText = $"SELECT total_tokens FROM ArcadeStats";
 
             return Convert.ToInt32(tokenTotal.ExecuteScalar());
+        }
+
+        public static void HandleBuyins(SqliteConnection connection, string userId, int defaultBuyin)
+        {
+            var command = connection.CreateCommand();
+            command.Parameters.AddWithValue("@userId", userId);
+            command.Parameters.AddWithValue("@defaultBuyin", defaultBuyin);
+
+            command.CommandText = "SELECT total_tokens FROM ArcadeStats WHERE userID = @userId";
+
+            // Check if the total token value is less than the default buy-in and add some tokens for playing
+            if (Convert.ToInt32(command.ExecuteScalar()) < defaultBuyin)
+            {
+                command.CommandText = "UPDATE ArcadeStats SET total_tokens = @defaultBuyin WHERE userID = @userId";
+                command.ExecuteNonQuery();
+            }
+        }
+
+        public static void SetupPlayer(SqliteConnection connection, string userId)
+        {
+            var command = connection.CreateCommand();
+            command.Parameters.AddWithValue("@userId", userId);
+            command.CommandText = "INSERT OR IGNORE INTO ArcadeStats (userID) VALUES (@userId)";
+
+            command.ExecuteNonQuery();
+        }
+
+        public static void UpdateArcadeRecord(ref ArcadeStats currentStats, int wagerAmount, SqliteConnection connection, string userId)
+        {
+            var currentTotalTokens = currentStats.TotalTokens;
+            var currentHighScore = currentStats.HighScore;
+            var currentLongestStreak = currentStats.LongestWinningStreak;
+
+            if (currentStats.DidWinWager)
+            {
+                // Update all required values (win)
+                currentStats.TimesWagered++;
+                currentStats.TotalTokens = currentTotalTokens + wagerAmount;
+                currentStats.LargestWager = wagerAmount > currentStats.LargestWager ? wagerAmount : currentStats.LargestWager;
+                currentStats.HighScore = currentStats.TotalTokens > currentHighScore ? currentStats.TotalTokens : currentHighScore;
+                currentStats.WinningStreak++;
+                currentStats.LongestWinningStreak = currentStats.WinningStreak > currentLongestStreak ? currentStats.WinningStreak : currentLongestStreak;
+            }
+            else
+            {
+                // Update all required values (loss)
+                currentStats.TimesWagered++;
+                currentStats.TotalTokens = currentTotalTokens - wagerAmount;
+                currentStats.LargestWager = wagerAmount > currentStats.LargestWager ? wagerAmount : currentStats.LargestWager;
+                currentStats.WinningStreak = 0;
+            }
+
+            var command = connection.CreateCommand();
+            command.Parameters.AddWithValue("@userId", userId);
+            command.CommandText = $@"
+    UPDATE ArcadeStats 
+    SET 
+        times_wagered = {currentStats.TimesWagered},
+        total_tokens = {currentStats.TotalTokens},
+        largest_wager = {currentStats.LargestWager},
+        high_score = {currentStats.HighScore},
+        winning_streak = {currentStats.WinningStreak},
+        longest_winning_streak = {currentStats.LongestWinningStreak}
+    WHERE userID = @userId";
+
+            command.ExecuteNonQuery();
         }
     }
 }
