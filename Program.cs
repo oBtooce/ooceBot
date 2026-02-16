@@ -29,6 +29,7 @@ class Program
 
     private static Dictionary<string, Command> CommandsList { get; set; } = new Dictionary<string, Command>()
     {
+        { "!", CommandMethods.Exclaim },
         { "!addquote", CommandMethods.AddQuote },
         { "!audit", CommandMethods.Audit },
         { "!boner", CommandMethods.Boner },
@@ -63,8 +64,7 @@ class Program
         { "!yt", CommandMethods.YouTube },
         { "f", CommandMethods.F },
         { "nice", CommandMethods.Nice },
-        { "w", CommandMethods.W },
-        { "!", CommandMethods.Exclaim }
+        { "w", CommandMethods.W }
     };
 
     public static async Task Main(string[] args)

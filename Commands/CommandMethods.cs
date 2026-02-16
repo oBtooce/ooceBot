@@ -196,12 +196,13 @@ namespace ooceBot.Commands
 
             string arcadeTokens = args.CommandQuantifier;
 
-            if (arcadeTokens.EndsWith("%") && int.TryParse(arcadeTokens.Split("%").First(), out int percentageValue) == true && percentageValue > 0 && percentageValue <= 100) // Percentage amount
+            if (arcadeTokens.EndsWith("%") && decimal.TryParse(arcadeTokens.Split("%").First(), out decimal percentageValue) == true && percentageValue > 0 && percentageValue <= 100) // Percentage amount
             {
                 int totalTokens = ArcadeMethods.GetTotalTokens(args.Connection);
 
                 // Get the proper token value from the percentage
-                int tokenValueFromPercentage = (percentageValue / 100) * totalTokens;
+                decimal percentAsNumber = percentageValue / 100;
+                int tokenValueFromPercentage = (int)(percentAsNumber * totalTokens);
 
                 // Calculate whether or not the wager won or lost
                 ArcadeStats arcadeRecord = ArcadeMethods.GetPlayerCurrentStats(args.Connection, args.ChatMessage.UserId);
@@ -214,7 +215,7 @@ namespace ooceBot.Commands
                 else
                     args.Client.SendMessage(args.ChatMessage.Channel, $"Oof...no luck this time, {args.ChatMessage.DisplayName}. Your new token total is {arcadeRecord.TotalTokens}.");
             }
-            else if (int.TryParse(arcadeTokens, out int tokenAmount) == true) // Flat token amount
+            else if (int.TryParse(arcadeTokens, out int tokenAmount) && tokenAmount > 0) // Flat token amount
             {
                 // Verify if the token amount is within the user's total token stash and proceed if so, else jump out with a warning
                 int totalTokens = ArcadeMethods.GetTotalTokens(args.Connection);
@@ -236,7 +237,7 @@ namespace ooceBot.Commands
                     args.Client.SendMessage(args.ChatMessage.Channel, "You don't have enough tokens to make that bet. Try again later obtoocBri");
             }
             else
-                args.Client.SendMessage(args.ChatMessage.Channel, "This wager seems...off. Try again with either a number (50) or a valid percentage (50%).");
+                args.Client.SendMessage(args.ChatMessage.Channel, "This seems...off. Try again with either a number (50) or a valid percentage (50%).");
         }
 
         public static void Quote(CommandArgs args)
