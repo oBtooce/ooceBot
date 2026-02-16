@@ -8,12 +8,19 @@ using System.Threading.Tasks;
 using TwitchLib.Api.Helix;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
+using TwitchLib.Client.Models;
 
-namespace ooceBot.Commands
+namespace ooceBot.Functionality
 {
     public static class ChessCommandMethods
     {
-        public static async void AuditChatter(TwitchClient client, OnMessageReceivedArgs args, string username)
+        /// <summary>
+        /// Looks up an account in the Chess.com API by its username and returns the creation date of the account.
+        /// </summary>
+        /// <param name="client">A Twitch client instance</param>
+        /// <param name="chatMessage">The chat message sent by the chatter</param>
+        /// <param name="username">The Chess.com account name to look up</param>
+        public static async void AuditChatter(TwitchClient client, ChatMessage chatMessage, string username)
         {
             HttpClient getCallClient = new HttpClient();
 
@@ -22,7 +29,7 @@ namespace ooceBot.Commands
             HttpResponseMessage response = await getCallClient.GetAsync($"https://api.chess.com/pub/player/{username}");
 
             if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
-                client.SendMessage(args.ChatMessage.Channel, $"{username} doesn't seem to be a valid username. Try again!");
+                client.SendMessage(chatMessage.Channel, $"{username} doesn't seem to be a valid username. Try again!");
             else
             {
                 string jsonString = await response.Content.ReadAsStringAsync();
@@ -38,23 +45,30 @@ namespace ooceBot.Commands
 
                         if (property == false)
                         {
-                            client.SendMessage(args.ChatMessage.Channel, $"'{username}' does not exist in the chesscom database.");
+                            client.SendMessage(chatMessage.Channel, $"'{username}' does not exist in the chesscom database.");
                             return;
                         }
 
                         double startDate = joinedThing.GetDouble();
                         string joinDate = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(startDate).ToShortDateString();
 
-                        client.SendMessage(args.ChatMessage.Channel, $"{username}'s account creation date is: {joinDate}");
+                        client.SendMessage(chatMessage.Channel, $"{username}'s account creation date is: {joinDate}");
                     }
                 }
                 else
                 {
-                    client.SendMessage(args.ChatMessage.Channel, $"An account with the name of '{username}' does not exist.");
+                    client.SendMessage(chatMessage.Channel, $"An account with the name of '{username}' does not exist.");
                 }
             }
         }
-        public static async void GetChesscomStats(TwitchClient client, OnMessageReceivedArgs args, string username)
+
+        /// <summary>
+        /// Looks up an account in the Chess.com API by its username and returns any/all existing time control statistics for the account (rapid, blitz, and bullet)
+        /// </summary>
+        /// <param name="client">A Twitch client instance</param>
+        /// <param name="chatMessage">The chat message sent by the chatter</param>
+        /// <param name="username">The Chess.com account name to look up</param>
+        public static async void GetChesscomStats(TwitchClient client, ChatMessage chatMessage, string username)
         {
             HttpClient getCallClient = new HttpClient();
 
@@ -63,7 +77,7 @@ namespace ooceBot.Commands
             HttpResponseMessage response = await getCallClient.GetAsync($"https://api.chess.com/pub/player/{username}/stats");
 
             if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
-                client.SendMessage(args.ChatMessage.Channel, $"{username} doesn't seem to be a valid username. Try again!");
+                client.SendMessage(chatMessage.Channel, $"{username} doesn't seem to be a valid username. Try again!");
             else
             {
                 string jsonString = await response.Content.ReadAsStringAsync();
@@ -93,7 +107,7 @@ namespace ooceBot.Commands
                         // Make sure that there is something to return here
                         if (stats.Count == 0)
                         {
-                            client.SendMessage(args.ChatMessage.Channel, $"An account for {username} exists, but no rapid, blitz or bullet games have been played.");
+                            client.SendMessage(chatMessage.Channel, $"An account for {username} exists, but no rapid, blitz or bullet games have been played.");
                             return;
                         }
 
@@ -108,12 +122,12 @@ namespace ooceBot.Commands
                                 outputMessage += $" | {stat.Key}: {stat.Value}";
                         }
 
-                        client.SendMessage(args.ChatMessage.Channel, outputMessage);
+                        client.SendMessage(chatMessage.Channel, outputMessage);
                     }
                 }
                 else
                 {
-                    client.SendMessage(args.ChatMessage.Channel, $"An account with the name of '{username}' does not exist.");
+                    client.SendMessage(chatMessage.Channel, $"An account with the name of '{username}' does not exist.");
                 }
             }
         }

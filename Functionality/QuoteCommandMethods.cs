@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ooceBot.Commands
+namespace ooceBot.Functionality
 {
     public static class QuoteCommandMethods
     {
@@ -12,6 +12,10 @@ namespace ooceBot.Commands
 
         public static string FilePath { get; set; } = $"{Directory.GetCurrentDirectory()}/quoteFile.txt";
 
+        /// <summary>
+        /// Adds a new quote to the quote file
+        /// </summary>
+        /// <param name="quote"></param>
         public static void AddQuote(string quote)
         {
             // Create the file if it doesn't already exist

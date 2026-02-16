@@ -11,6 +11,11 @@ namespace ooceBot.Sounds
 {
     public static class VolumeControl
     {
+        /// <summary>
+        /// Gets the current volume of the Nightbot song request client.
+        /// </summary>
+        /// <param name="client">The Nightbot client</param>
+        /// <returns>The current client volume</returns>
         public static async Task<int> GetNightbotCurrentVolume(HttpClient client)
         {
             int volume = 0;
@@ -37,6 +42,13 @@ namespace ooceBot.Sounds
             return volume;
         }
 
+        /// <summary>
+        /// Increases the volume of the Nightbot song requests client.
+        /// </summary>
+        /// <param name="client">The Nightbot client</param>
+        /// <param name="volume">The current volume</param>
+        /// <param name="change">The volume adjustment level</param>
+        /// <returns>The increased Nightbot client's volume</returns>
         public static async Task<int> IncreaseVolume(HttpClient client, int volume, int change)
         {
             int increasedVolume = volume + change;
@@ -62,6 +74,13 @@ namespace ooceBot.Sounds
             }
         }
 
+        /// <summary>
+        /// Reduces the volume of the Nightbot song requests client.
+        /// </summary>
+        /// <param name="client">The Nightbot client</param>
+        /// <param name="volume">The current volume</param>
+        /// <param name="change">The volume adjustment level</param>
+        /// <returns>The reduced Nightbot client's volume</returns>
         public static async Task<int> ReduceVolume(HttpClient client, int volume, int change)
         {
             int loweredVolume = volume - change;

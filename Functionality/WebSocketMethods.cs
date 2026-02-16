@@ -10,12 +10,10 @@ using TwitchLib.Api.Helix;
 using TwitchLib.Communication.Clients;
 using TwitchLib.PubSub.Events;
 
-namespace ooceBot.Commands
+namespace ooceBot.Functionality
 {
     public static class WebSocketMethods
     {
-        public static string ScamFilePath { get; set; } = $"{Directory.GetCurrentDirectory()}/scamFile.txt";
-
         public static Uri TwitchWebSocketUri { get; set; } = new Uri("wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=30");
 
         public static ClientWebSocket WebSocketInstance { get; set; } = new ClientWebSocket();

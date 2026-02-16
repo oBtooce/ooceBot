@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using TwitchLib.Api;
 using TwitchLib.Api.Helix.Models.Channels.ModifyChannelInformation;
 
-namespace ooceBot.Commands
+namespace ooceBot.Functionality
 {
     public static class StreamCommandMethods
     {
