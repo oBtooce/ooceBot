@@ -27,7 +27,7 @@ class Program
 
     public delegate void Command(CommandArgs args);
 
-    private static Dictionary<string, Command> CommandsList { get; set; } = new Dictionary<string, Command>()
+    public static Dictionary<string, Command> CommandsList { get; set; } = new Dictionary<string, Command>()
     {
         { "!", CommandMethods.Exclaim },
         { "!addquote", CommandMethods.AddQuote },
@@ -54,14 +54,16 @@ class Program
         { "!schedule", CommandMethods.Schedule },
         { "!spotify", CommandMethods.Spotify },
         { "!stats", CommandMethods.Stats },
+        { "!steam", CommandMethods.Steam },
         { "!tarf", CommandMethods.Tarf },
-        { "!title", CommandMethods.Title },
+        //{ "!title", CommandMethods.Title },
         { "!twitter", CommandMethods.Twitter },
         { "!twt", CommandMethods.Twitter },
         { "!vid", CommandMethods.Vid },
         { "!wtf", CommandMethods.WTF },
         { "!youtube", CommandMethods.YouTube },
         { "!yt", CommandMethods.YouTube },
+        //{ "based", CommandMethods.Based },
         { "f", CommandMethods.F },
         { "nice", CommandMethods.Nice },
         { "w", CommandMethods.W }
@@ -132,22 +134,11 @@ class Program
     }
 
     // Need to figure out what to do here in terms of having a timer play
-    //private static async Task TimerMessages(CancellationToken cancellationToken = default)
+    //private static async Task PostInChat(CancellationToken cancellationToken = default)
     //{
-    //    // Set a message to go off every 30 minutes
-    //    using var timer = new PeriodicTimer(TimeSpan.FromMinutes(30));
-
-    //    while (await timer.WaitForNextTickAsync(cancellationToken))
+    //    while (!cancellationToken.IsCancellationRequested)
     //    {
-    //        try
-    //        {
-    //            Client.SendMessage(e.ChatMessage.Channel, "obtoocBri obtoocBri obtoocBri obtoocBri obtoocBri");
-    //        }
-    //        catch (OperationCanceledException)
-    //        {
-    //            // Handle cancellation
-    //            break;
-    //        }
+    //        Client.SendMessage(args.ChatMessage.Channel, "obtoocBri obtoocBri obtoocBri obtoocBri obtoocBri");
     //    }
     //}
 }

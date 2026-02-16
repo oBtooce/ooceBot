@@ -11,6 +11,8 @@ using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TwitchLib.Api;
+using TwitchLib.Api.Helix.Models.Channels.ModifyChannelInformation;
 using TwitchLib.Communication.Interfaces;
 
 namespace ooceBot.Commands
@@ -34,6 +36,16 @@ namespace ooceBot.Commands
                 ChessCommandMethods.AuditChatter(args.Client, args.ChatMessage, args.CommandQuantifier);
             else
                 args.Client.SendMessage(args.ChatMessage.Channel, $"Hmm...something went wrong. Make sure you are using a valid username and try again with the following format: !audit (username)");
+        }
+
+        public static void Based(CommandArgs args)
+        {
+            args.Client.SendMessage(args.ChatMessage.Channel, @"    ____                      __
+   / __ )____ _________  ____/ /
+  / __  / __ `/ ___/ _ \/ __  / 
+ / /_/ / /_/ (__  )  __/ /_/ /  
+/_____/\__,_/____/\___/\__,_/   
+                                ");
         }
 
         public static void Boner(CommandArgs args)
@@ -122,8 +134,29 @@ namespace ooceBot.Commands
 
         public static void Help(CommandArgs args)
         {
+            // Standard help command
+            if (string.IsNullOrEmpty(args.CommandQuantifier))
+            {
+                // Build up a string of command to share with the chat
+                string commandListMessage = "Try out any of these commands: ";
+                List<string> Keys = Program.CommandsList.Keys.OrderBy(k => k).ToList();
 
+                foreach (var key in Keys)
+                    commandListMessage += key == Keys.Last() ? key : $"{key} | ";
+
+                args.Client.SendMessage(args.ChatMessage.Channel, commandListMessage);
+            }
+            else if (Program.CommandsList.Keys.Contains(args.CommandQuantifier))
+            {
+                // Do some stuff
+                // Note for later: think about storing each command as the text without the ! and add that later
+            }
+            else
+            {
+                args.Client.SendMessage(args.ChatMessage.Channel, "That command does not exist, but your enthusiasm is noted obtoocBri");
+            }
         }
+
         public static void Here(CommandArgs args)
         {
             var command = args.Connection.CreateCommand();
@@ -317,29 +350,34 @@ namespace ooceBot.Commands
                 args.Client.SendMessage(args.ChatMessage.Channel, $"Hmm...something went wrong. Make sure you are using a valid username and try again with the following format: !stats (username)");
         }
 
+        public static void Steam(CommandArgs args)
+        {
+            args.Client.SendMessage(args.ChatMessage.Channel, "oBtooce's Steam page: https://steamcommunity.com/id/obtooce/");
+        }
+
         public static void Tarf(CommandArgs args)
         {
             args.Client.SendMessage(args.ChatMessage.Channel, $"you gotta be bad, you gotta be bold, you gotta be wiser, you gotta be hard, you gotta be tough, you gotta be stronger, you gotta be cool, you gotta be calm, you gotta stay together, all i know love will save the day - corrected");
         }
 
-        public static void Title(CommandArgs args)
+        public static async void Title(CommandArgs args)
         {
-            //if (!string.IsNullOrEmpty(messageParts.Last()))
-            //{
-            //    TwitchAPI api = new TwitchAPI();
+            if (!string.IsNullOrEmpty(args.CommandQuantifier))
+            {
+                TwitchAPI api = new TwitchAPI();
 
-            //    // Update the API settings with client ID and OAuth token
-            //    api.Settings.ClientId = ConfigurationManager.AppSettings["TwitchClientID"];
-            //    api.Settings.AccessToken = BotVariables.TwitchOAuthToken.Split(":").Last(); // To work with TwitchAPI, the access token can not have the "oauth:" prefix, so we chop it off
+                // Update the API settings with client ID and OAuth token
+                api.Settings.ClientId = ConfigurationManager.AppSettings["TwitchClientID"];
+                api.Settings.AccessToken = BotVariables.TwitchOAuthToken.Split(":").Last(); // To work with TwitchAPI, the access token can not have the "oauth:" prefix, so we chop it off
 
-            //    // Get the broadcaster ID for the channel modification request
-            //    var users = await api.Helix.Users.GetUsersAsync(logins: new List<string> { BotVariables.ChannelToJoin });
-            //    string broadcasterId = users.Users[0].Id;
+                // Get the broadcaster ID for the channel modification request
+                var users = await api.Helix.Users.GetUsersAsync(logins: new List<string> { BotVariables.ChannelToJoin });
+                string broadcasterId = users.Users[0].Id;
 
-            //    await api.Helix.Channels.ModifyChannelInformationAsync(broadcasterId, new ModifyChannelInformationRequest { Title = messageParts.Last() });
+                await api.Helix.Channels.ModifyChannelInformationAsync(broadcasterId, new ModifyChannelInformationRequest { Title = args.CommandQuantifier });
 
-            //    Client.SendMessage(e.ChatMessage.Channel, $"Title has been updated to \"{messageParts.Last()}\"");
-            //}
+                args.Client.SendMessage(args.ChatMessage.Channel, $"Title has been updated to \"{args.CommandQuantifier}\"");
+            }
         }
 
         public static void Twitter(CommandArgs args)
