@@ -241,11 +241,14 @@ class Program
                 {
                     int totalTokens = ArcadeMethods.GetTotalTokens(Connection);
 
+                    // Get the proper token value from the percentage
+                    int tokenValueFromPercentage = (percentageValue / 100) * totalTokens;
+
                     // Calculate whether or not the wager won or lost
                     ArcadeStats arcadeRecord = ArcadeMethods.GetPlayerCurrentStats(Connection, e.ChatMessage.UserId);
                     arcadeRecord.DidWinWager = ArcadeMethods.DecideTokenOutcome(Random);
 
-                    ArcadeMethods.UpdateArcadeRecord(ref arcadeRecord, percentageValue, Connection, e.ChatMessage.UserId);
+                    ArcadeMethods.UpdateArcadeRecord(ref arcadeRecord, tokenValueFromPercentage, Connection, e.ChatMessage.UserId);
 
                     if (arcadeRecord.DidWinWager)
                         Client.SendMessage(e.ChatMessage.Channel, $"obtoocW Nice win, {e.ChatMessage.DisplayName}! obtoocW Looks like you've got {arcadeRecord.TotalTokens} tokens to spend.");
