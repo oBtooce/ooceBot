@@ -118,10 +118,10 @@ namespace ooceBot.Commands
             if (args.ChatMessage.IsVip || args.ChatMessage.IsSubscriber || args.ChatMessage.IsModerator || args.ChatMessage.IsBroadcaster)
             {
                 // Get the current volume from the API
-                int originalVolume = await VolumeControl.GetNightbotCurrentVolume(args.NightbotSongRequestClient);
+                double originalVolume = await VolumeControl.GetNightbotCurrentVolume(args.NightbotSongRequestClient);
 
                 // Keep track of the volume for the reset after the video is done
-                int updatedVolume = await VolumeControl.ReduceVolume(args.NightbotSongRequestClient, originalVolume, originalVolume);
+                double updatedVolume = await VolumeControl.ReduceVolume(args.NightbotSongRequestClient, originalVolume, originalVolume);
 
                 PlaySounds.PlaySoundWithFader($"{ConfigurationManager.AppSettings["SoundsFolder"]}\\Berserk soundtrack - 4 Gatsu.mp3", 2000, 2000);
 
@@ -206,6 +206,35 @@ namespace ooceBot.Commands
         public static void Jacob(CommandArgs args)
         {
             args.Client.SendMessage(args.ChatMessage.Channel, $"Blackjack");
+        }
+
+        public static async void Lobster(CommandArgs args)
+        {
+            if (args.ChatMessage.IsVip || args.ChatMessage.IsSubscriber || args.ChatMessage.IsModerator || args.ChatMessage.IsBroadcaster)
+            {
+                OBSWebsocket websocket = await OBSManager.ConnectToOBSWebsocket();
+
+                // Get the current volume from the API
+                double originalVolume = await VolumeControl.GetNightbotCurrentVolume(args.NightbotSongRequestClient);
+                double volumeChange = originalVolume * 0.9;
+
+                // Keep track of the volume for the reset after the video is done
+                double updatedVolume = await VolumeControl.ReduceVolume(args.NightbotSongRequestClient, originalVolume, volumeChange);
+
+                // The scene needs to exist in the currently selected scene, so fetch the current scene name and its items
+                var currentScene = websocket.GetCurrentProgramScene();
+                var sceneItems = websocket.GetSceneItemList(currentScene);
+
+                // Need to figure out a way to make the source name not a string because this is a bad setup
+                var lobsterScene = sceneItems.First(item => item.SourceName == "LOBSTER");
+
+                await PlayVideos.PlayVideoAndHideAtEnd(websocket, currentScene, lobsterScene);
+
+                // Reset the volume after the video is done
+                await VolumeControl.IncreaseVolume(args.NightbotSongRequestClient, updatedVolume, volumeChange);
+            }
+            else
+                args.Client.SendMessage(args.ChatMessage.Channel, $"VIPs and subscribers can play song and sound commands. Want in? You know what to do...");
         }
 
         public static void Lurk(CommandArgs args)
@@ -318,10 +347,10 @@ namespace ooceBot.Commands
             if (args.ChatMessage.IsVip || args.ChatMessage.IsSubscriber || args.ChatMessage.IsModerator || args.ChatMessage.IsBroadcaster)
             {
                 // Get the current volume from the API
-                int originalVolume = await VolumeControl.GetNightbotCurrentVolume(args.NightbotSongRequestClient);
+                double originalVolume = await VolumeControl.GetNightbotCurrentVolume(args.NightbotSongRequestClient);
 
                 // Keep track of the volume for the reset after the video is done
-                int updatedVolume = await VolumeControl.ReduceVolume(args.NightbotSongRequestClient, originalVolume, originalVolume);
+                double updatedVolume = await VolumeControl.ReduceVolume(args.NightbotSongRequestClient, originalVolume, originalVolume);
 
                 PlaySounds.PlaySoundWithFader($"{ConfigurationManager.AppSettings["SoundsFolder"]}\\Beautiful Trumpet.mp3", 2000, 2000);
 
@@ -395,6 +424,35 @@ namespace ooceBot.Commands
             args.Client.SendMessage(args.ChatMessage.Channel, "obtoocW obtoocW obtoocW obtoocW obtoocW");
         }
 
+        public static async void WHO(CommandArgs args)
+        {
+            if (args.ChatMessage.IsVip || args.ChatMessage.IsSubscriber || args.ChatMessage.IsModerator || args.ChatMessage.IsBroadcaster)
+            {
+                OBSWebsocket websocket = await OBSManager.ConnectToOBSWebsocket();
+
+                // Get the current volume from the API
+                double originalVolume = await VolumeControl.GetNightbotCurrentVolume(args.NightbotSongRequestClient);
+                double volumeChange = originalVolume * 0.9;
+
+                // Keep track of the volume for the reset after the video is done
+                double updatedVolume = await VolumeControl.ReduceVolume(args.NightbotSongRequestClient, originalVolume, volumeChange);
+
+                // The scene needs to exist in the currently selected scene, so fetch the current scene name and its items
+                var currentScene = websocket.GetCurrentProgramScene();
+                var sceneItems = websocket.GetSceneItemList(currentScene);
+
+                // Need to figure out a way to make the source name not a string because this is a bad setup
+                var whoScene = sceneItems.First(item => item.SourceName == "WHO");
+
+                await PlayVideos.PlayVideoAndHideAtEnd(websocket, currentScene, whoScene);
+
+                // Reset the volume after the video is done
+                await VolumeControl.IncreaseVolume(args.NightbotSongRequestClient, updatedVolume, volumeChange);
+            }
+            else
+                args.Client.SendMessage(args.ChatMessage.Channel, $"VIPs and subscribers can play song and sound commands. Want in? You know what to do...");
+        }
+
         public static async void WTF(CommandArgs args)
         {
             if (args.ChatMessage.IsVip || args.ChatMessage.IsSubscriber || args.ChatMessage.IsModerator || args.ChatMessage.IsBroadcaster)
@@ -402,10 +460,11 @@ namespace ooceBot.Commands
                 OBSWebsocket websocket = await OBSManager.ConnectToOBSWebsocket();
 
                 // Get the current volume from the API
-                int volume = await VolumeControl.GetNightbotCurrentVolume(args.NightbotSongRequestClient);
+                double originalVolume = await VolumeControl.GetNightbotCurrentVolume(args.NightbotSongRequestClient);
+                double volumeChange = originalVolume * 0.9;
 
                 // Keep track of the volume for the reset after the video is done
-                volume = await VolumeControl.ReduceVolume(args.NightbotSongRequestClient, volume, 50);
+                double updatedVolume = await VolumeControl.ReduceVolume(args.NightbotSongRequestClient, originalVolume, volumeChange);
 
                 // The scene needs to exist in the currently selected scene, so fetch the current scene name and its items
                 var currentScene = websocket.GetCurrentProgramScene();
@@ -417,7 +476,7 @@ namespace ooceBot.Commands
                 await PlayVideos.PlayVideoAndHideAtEnd(websocket, currentScene, wtfScene);
 
                 // Reset the volume after the video is done
-                await VolumeControl.IncreaseVolume(args.NightbotSongRequestClient, volume, 50);
+                await VolumeControl.IncreaseVolume(args.NightbotSongRequestClient, updatedVolume, volumeChange);
             }
             else
                 args.Client.SendMessage(args.ChatMessage.Channel, $"VIPs and subscribers can play song and sound commands. Want in? You know what to do...");
