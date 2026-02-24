@@ -14,10 +14,12 @@ namespace ooceBot.SQL
             // Open the connection to the DB
             connection.Open();
 
-            // Initialize the tables needed for stream
+            // Initialize the tables needed for stream (chatters table first since other tables use ID as their PK)
             InitializeChatterTable(connection);
+
             InitializeAttendanceTable(connection);
             InitializeWageringTable(connection);
+            InitializeCommandUsageTable(connection);
 
             // Close the connection to the DB
             connection.Close();
@@ -26,6 +28,7 @@ namespace ooceBot.SQL
         /// <summary>
         /// Creates a table that is used for taking attendance.
         /// </summary>
+        /// <param name="connection">The SQLite connection required for DB interaction</param>
         public static void InitializeChatterTable(SqliteConnection connection)
         {
             var command = connection.CreateCommand();
@@ -44,6 +47,7 @@ namespace ooceBot.SQL
         /// <summary>
         /// Creates a table that is used for taking attendance.
         /// </summary>
+        /// <param name="connection">The SQLite connection required for DB interaction</param>
         public static void InitializeAttendanceTable(SqliteConnection connection)
         {
             var command = connection.CreateCommand();
@@ -68,6 +72,7 @@ namespace ooceBot.SQL
         /// <summary>
         /// Creates a table that is used for wagering.
         /// </summary>
+        /// <param name="connection">The SQLite connection required for DB interaction</param>
         public static void InitializeWageringTable(SqliteConnection connection)
         {
             var command = connection.CreateCommand();
@@ -86,6 +91,30 @@ namespace ooceBot.SQL
                 )
             ";
 
+            command.ExecuteNonQuery();
+        }
+
+        /// <summary>
+        /// Creates a table that is used to handle the number of times a video has been used through commands.
+        /// </summary>
+        /// <param name="connection">The SQLite connection required for DB interaction</param>
+        public static void InitializeCommandUsageTable(SqliteConnection connection)
+        {
+            var command = connection.CreateCommand();
+
+            // Table creation
+            command.CommandText = @"
+                CREATE TABLE IF NOT EXISTS CommandUsage (
+                    commandID TEXT PRIMARY KEY,
+                    usage_count INTEGER NOT NULL DEFAULT 0,
+                    currently_playing INTEGER NOT NULL DEFAULT 0                    
+                )
+            ";
+
+            command.ExecuteNonQuery();
+
+            // Reset command usage counts back to default
+            command.CommandText = "UPDATE CommandUsage SET usage_count = 0";
             command.ExecuteNonQuery();
         }
     }

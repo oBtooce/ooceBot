@@ -17,64 +17,21 @@ using ooceBot.AudioVideo;
 using System.Configuration;
 using ooceBot.Commands;
 
-class Program
+public class Program
 {
     private static TwitchClient Client { get; set; }
 
     private static HttpClient NightbotSongRequestClient { get; set; }
 
-    private static SqliteConnection Connection { get; set; } = new SqliteConnection("Data Source=TwitchStats.db");
-
-    public delegate void Command(CommandArgs args);
-
-    public static Dictionary<string, Command> CommandsList { get; set; } = new Dictionary<string, Command>()
-    {
-        { "!", CommandMethods.Exclaim },
-        { "!addquote", CommandMethods.AddQuote },
-        { "!audit", CommandMethods.Audit },
-        { "!boner", CommandMethods.Boner },
-        { "!buyin", CommandMethods.BuyIn },
-        { "!croissant", CommandMethods.Croissant },
-        { "!dc", CommandMethods.Discord },
-        { "!discord", CommandMethods.Discord },
-        { "!emotes", CommandMethods.Emotes },
-        { "!finecheddar", CommandMethods.FineCheddar },
-        { "!groove", CommandMethods.Groove },
-        { "!guts", CommandMethods.Guts },
-        { "!help", CommandMethods.Help },
-        { "!here", CommandMethods.Here },
-        { "!jacob", CommandMethods.Jacob },
-        { "!lobster", CommandMethods.Lobster },
-        { "!lurk", CommandMethods.Lurk },
-        { "!play", CommandMethods.Play },
-        { "!quote", CommandMethods.Quote },
-        { "!randomquote", CommandMethods.RandomQuote },
-        { "!rq", CommandMethods.RandomQuote },
-        { "!rngmove", CommandMethods.RNGMove },
-        { "!salute", CommandMethods.Salute },
-        { "!schedule", CommandMethods.Schedule },
-        { "!spotify", CommandMethods.Spotify },
-        { "!stats", CommandMethods.Stats },
-        { "!steam", CommandMethods.Steam },
-        { "!tarf", CommandMethods.Tarf },
-        //{ "!title", CommandMethods.Title },
-        { "!twitter", CommandMethods.Twitter },
-        { "!twt", CommandMethods.Twitter },
-        { "!vid", CommandMethods.Vid },
-        { "!who", CommandMethods.WHO },
-        { "!wtf", CommandMethods.WTF },
-        { "!youtube", CommandMethods.YouTube },
-        { "!yt", CommandMethods.YouTube },
-        //{ "based", CommandMethods.Based },
-        { "f", CommandMethods.F },
-        { "nice", CommandMethods.Nice },
-        { "w", CommandMethods.W }
-    };
+    private static SqliteConnection Connection { get; set; } = new SqliteConnection("Data Source=TwitchStats.db");    
 
     public static async Task Main(string[] args)
     {
         // Create all tables that can be used through Twitch chat
         TableSQLMethods.InitializeAllTables(Connection);
+
+        // Set up the command usage table
+        DBQueryMethods.PopulateCommandUsageTable(Connection, BotVariables.VideoCommands);
 
         // Set access tokens for Nightbot and Twitch
         //await NighbotOAuthManager.SetNightbotOAuthToken();
@@ -126,13 +83,15 @@ class Program
         // Open new connection
         Connection.Open();
 
-        if (CommandsList.TryGetValue(messageParts.First().ToLower(), out Command command))
+        if (BotVariables.CommandsList.TryGetValue(messageParts.First().ToLower(), out BotVariables.Command command))
         {
             if (messageParts.Length == 1)
                 command(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, string.Empty));
             else
                 command(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, messageParts.Last()));
         }
+        else if (BotVariables.VideoCommands.TryGetValue(messageParts.First().ToLower(), out command))
+            command(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, string.Empty));
     }
 
     // Need to figure out what to do here in terms of having a timer play
