@@ -10,16 +10,6 @@ namespace ooceBot.SQL
 {
     public static class DBQueryMethods
     {
-        public static bool CheckIfVideoIsPlaying(SqliteConnection connection, string commandText)
-        {
-            var command = connection.CreateCommand();
-            command.Parameters.AddWithValue("@commandText", commandText);
-
-            command.CommandText = $"SELECT currently_playing FROM CommandUsage WHERE commandID = @commandText";
-
-            return Convert.ToInt32(command.ExecuteScalar()) == 1 ? true : false;
-        }
-
         public static void PopulateCommandUsageTable(SqliteConnection connection, Dictionary<string, BotVariables.Command> videoCommands)
         {
             connection.Open();
@@ -34,26 +24,6 @@ namespace ooceBot.SQL
 
                 command.ExecuteNonQuery();
             }
-        }
-
-        public static void SetVideoAsDone(SqliteConnection connection, string commandText)
-        {
-            var command = connection.CreateCommand();
-            command.Parameters.AddWithValue("@commandText", commandText);
-
-            command.CommandText = $"UPDATE CommandUsage SET currently_playing = 0 WHERE commandID = @commandText";
-
-            command.ExecuteNonQuery();
-        }
-
-        public static void SetVideoAsPlaying(SqliteConnection connection, string commandText)
-        {
-            var command = connection.CreateCommand();
-            command.Parameters.AddWithValue("@commandText", commandText);
-
-            command.CommandText = $"UPDATE CommandUsage SET currently_playing = 1 WHERE commandID = @commandText";
-
-            command.ExecuteNonQuery();
         }
 
         /// <summary>

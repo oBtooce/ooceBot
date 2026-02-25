@@ -113,25 +113,6 @@ namespace ooceBot.Commands
             //    args.Client.SendMessage(args.ChatMessage.Channel, "Sorry baby, it looks like you ain't got the dancin' fever. Show some more passion to get your one-way ticket to Melody Town, ya dig?");
         }
 
-        public static async void Guts(CommandArgs args)
-        {
-            if (args.ChatMessage.IsVip || args.ChatMessage.IsSubscriber || args.ChatMessage.IsModerator || args.ChatMessage.IsBroadcaster)
-            {
-                // Get the current volume from the API
-                double originalVolume = await VolumeControl.GetNightbotCurrentVolume(args.NightbotSongRequestClient);
-
-                // Keep track of the volume for the reset after the video is done
-                double updatedVolume = await VolumeControl.ReduceVolume(args.NightbotSongRequestClient, originalVolume, originalVolume);
-
-                PlaySounds.PlaySoundWithFader($"{ConfigurationManager.AppSettings["SoundsFolder"]}\\Berserk soundtrack - 4 Gatsu.mp3", 2000, 2000);
-
-                // Reset the volume to its previous level
-                await VolumeControl.IncreaseVolume(args.NightbotSongRequestClient, updatedVolume, originalVolume);
-            }
-            else
-                args.Client.SendMessage(args.ChatMessage.Channel, $"VIPs and subscribers can play song and sound commands. Want in? You know what to do...");
-        }
-
         public static void Help(CommandArgs args)
         {
             // Standard help command
@@ -219,11 +200,7 @@ namespace ooceBot.Commands
         {
             if (args.ChatMessage.IsVip || args.ChatMessage.IsSubscriber || args.ChatMessage.IsModerator || args.ChatMessage.IsBroadcaster)
             {
-                // Check if video is already playing
-                // Todo: find a cleaner method to pass in the command text instead of hardcoding it
-                bool isPlaying = DBQueryMethods.CheckIfVideoIsPlaying(args.Connection, "!who");
-
-                if (!isPlaying)
+                if (!BotVariables.IsAudioOrVideoPlaying)
                 {
                     OBSWebsocket websocket = await OBSManager.ConnectToOBSWebsocket();
 
@@ -241,17 +218,13 @@ namespace ooceBot.Commands
                     // Need to figure out a way to make the source name not a string because this is a bad setup
                     var lobsterScene = sceneItems.First(item => item.SourceName == "LOBSTER");
 
-                    // Todo: find a cleaner method to pass in the command text instead of hardcoding it
-                    DBQueryMethods.SetVideoAsPlaying(args.Connection, "!lobster");
                     await PlayVideos.PlayVideoAndHideAtEnd(websocket, currentScene, lobsterScene);
 
                     // Reset the volume after the video is done
                     await VolumeControl.IncreaseVolume(args.NightbotSongRequestClient, updatedVolume, volumeChange);
-                    // Todo: find a cleaner method to pass in the command text instead of hardcoding it
-                    DBQueryMethods.SetVideoAsDone(args.Connection, "!lobster");
                 }
                 else
-                    args.Client.SendMessage(args.ChatMessage.Channel, $"Gotta let the video play out first!");
+                    args.Client.SendMessage(args.ChatMessage.Channel, $"Gotta wait 'til the other stuff is done playing.");
             }
             else
                 args.Client.SendMessage(args.ChatMessage.Channel, $"VIPs and subscribers can play song and sound commands. Want in? You know what to do...");
@@ -366,16 +339,21 @@ namespace ooceBot.Commands
         {
             if (args.ChatMessage.IsVip || args.ChatMessage.IsSubscriber || args.ChatMessage.IsModerator || args.ChatMessage.IsBroadcaster)
             {
-                // Get the current volume from the API
-                double originalVolume = await VolumeControl.GetNightbotCurrentVolume(args.NightbotSongRequestClient);
+                if (!BotVariables.IsAudioOrVideoPlaying)
+                {
+                    // Get the current volume from the API
+                    double originalVolume = await VolumeControl.GetNightbotCurrentVolume(args.NightbotSongRequestClient);
 
-                // Keep track of the volume for the reset after the video is done
-                double updatedVolume = await VolumeControl.ReduceVolume(args.NightbotSongRequestClient, originalVolume, originalVolume);
+                    // Keep track of the volume for the reset after the video is done
+                    double updatedVolume = await VolumeControl.ReduceVolume(args.NightbotSongRequestClient, originalVolume, originalVolume);
 
-                PlaySounds.PlaySoundWithFader($"{ConfigurationManager.AppSettings["SoundsFolder"]}\\Beautiful Trumpet.mp3", 2000, 2000);
+                    PlaySounds.PlaySoundWithFader($"{ConfigurationManager.AppSettings["SoundsFolder"]}\\Beautiful Trumpet.mp3", 2000, 2000);
 
-                // Reset the volume to its previous level
-                await VolumeControl.IncreaseVolume(args.NightbotSongRequestClient, updatedVolume, originalVolume);
+                    // Reset the volume to its previous level
+                    await VolumeControl.IncreaseVolume(args.NightbotSongRequestClient, updatedVolume, originalVolume);
+                }
+                else
+                    args.Client.SendMessage(args.ChatMessage.Channel, $"Gotta wait 'til the other stuff is done playing.");
             }
             else
                 args.Client.SendMessage(args.ChatMessage.Channel, $"VIPs and subscribers can play song and sound commands. Want in? You know what to do...");
@@ -384,6 +362,30 @@ namespace ooceBot.Commands
         public static void Schedule(CommandArgs args)
         {
             args.Client.SendMessage(args.ChatMessage.Channel, "oBtooce's schedule is a complete lie. Just tune in whenever!");
+        }
+
+        public static async void Sorrow(CommandArgs args)
+        {
+            if (args.ChatMessage.IsVip || args.ChatMessage.IsSubscriber || args.ChatMessage.IsModerator || args.ChatMessage.IsBroadcaster)
+            {
+                if (!BotVariables.IsAudioOrVideoPlaying)
+                {
+                    // Get the current volume from the API
+                    double originalVolume = await VolumeControl.GetNightbotCurrentVolume(args.NightbotSongRequestClient);
+
+                    // Keep track of the volume for the reset after the video is done
+                    double updatedVolume = await VolumeControl.ReduceVolume(args.NightbotSongRequestClient, originalVolume, originalVolume);
+
+                    PlaySounds.PlaySoundWithFader($"{ConfigurationManager.AppSettings["SoundsFolder"]}\\Berserk soundtrack - 4 Gatsu.mp3", 2000, 2000);
+
+                    // Reset the volume to its previous level
+                    await VolumeControl.IncreaseVolume(args.NightbotSongRequestClient, updatedVolume, originalVolume);
+                }
+                else
+                    args.Client.SendMessage(args.ChatMessage.Channel, $"Gotta wait 'til the other stuff is done playing.");
+            }
+            else
+                args.Client.SendMessage(args.ChatMessage.Channel, $"VIPs and subscribers can play song and sound commands. Want in? You know what to do...");
         }
 
         public static void Spotify(CommandArgs args)
@@ -448,11 +450,7 @@ namespace ooceBot.Commands
         {
             if (args.ChatMessage.IsVip || args.ChatMessage.IsSubscriber || args.ChatMessage.IsModerator || args.ChatMessage.IsBroadcaster)
             {
-                // Check if video is already playing
-                // Todo: find a cleaner method to pass in the command text instead of hardcoding it
-                bool isPlaying = DBQueryMethods.CheckIfVideoIsPlaying(args.Connection, "!who");
-
-                if (!isPlaying)
+                if (!BotVariables.IsAudioOrVideoPlaying)
                 {
                     OBSWebsocket websocket = await OBSManager.ConnectToOBSWebsocket();
 
@@ -469,18 +467,13 @@ namespace ooceBot.Commands
 
                     // Need to figure out a way to make the source name not a string because this is a bad setup
                     var whoScene = sceneItems.First(item => item.SourceName == "WHO");
-
-                    // Todo: find a cleaner method to pass in the command text instead of hardcoding it
-                    DBQueryMethods.SetVideoAsPlaying(args.Connection, "!who");
                     await PlayVideos.PlayVideoAndHideAtEnd(websocket, currentScene, whoScene);
 
                     // Reset the volume after the video is done
                     await VolumeControl.IncreaseVolume(args.NightbotSongRequestClient, updatedVolume, volumeChange);
-                    // Todo: find a cleaner method to pass in the command text instead of hardcoding it
-                    DBQueryMethods.SetVideoAsDone(args.Connection, "!who");
                 }
                 else
-                    args.Client.SendMessage(args.ChatMessage.Channel, $"Gotta let the video play out first!");
+                    args.Client.SendMessage(args.ChatMessage.Channel, $"Gotta wait 'til the other stuff is done playing.");
             }
             else
                 args.Client.SendMessage(args.ChatMessage.Channel, $"VIPs and subscribers can play song and sound commands. Want in? You know what to do...");
@@ -490,11 +483,7 @@ namespace ooceBot.Commands
         {
             if (args.ChatMessage.IsVip || args.ChatMessage.IsSubscriber || args.ChatMessage.IsModerator || args.ChatMessage.IsBroadcaster)
             {
-                // Check if video is already playing
-                // Todo: find a cleaner method to pass in the command text instead of hardcoding it
-                bool isPlaying = DBQueryMethods.CheckIfVideoIsPlaying(args.Connection, "!wtf");
-
-                if (!isPlaying)
+                if (!BotVariables.IsAudioOrVideoPlaying)
                 {
                     OBSWebsocket websocket = await OBSManager.ConnectToOBSWebsocket();
 
@@ -511,18 +500,13 @@ namespace ooceBot.Commands
 
                     // Need to figure out a way to make the source name not a string because this is a bad setup
                     var wtfScene = sceneItems.First(item => item.SourceName == "WTF");
-
-                    // Todo: find a cleaner method to pass in the command text instead of hardcoding it
-                    DBQueryMethods.SetVideoAsPlaying(args.Connection, "!wtf");
                     await PlayVideos.PlayVideoAndHideAtEnd(websocket, currentScene, wtfScene);
 
                     // Reset the volume after the video is done
                     await VolumeControl.IncreaseVolume(args.NightbotSongRequestClient, updatedVolume, volumeChange);
-                    // Todo: find a cleaner method to pass in the command text instead of hardcoding it
-                    DBQueryMethods.SetVideoAsDone(args.Connection, "!wtf");
                 }
                 else
-                    args.Client.SendMessage(args.ChatMessage.Channel, $"Gotta let the video play out first!");
+                    args.Client.SendMessage(args.ChatMessage.Channel, $"Gotta wait 'til the other stuff is done playing.");
             }
             else
                 args.Client.SendMessage(args.ChatMessage.Channel, $"VIPs and subscribers can play song and sound commands. Want in? You know what to do...");

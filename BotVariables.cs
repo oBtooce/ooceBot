@@ -54,8 +54,7 @@ namespace ooceBot
             { "!discord", CommandMethods.Discord },
             { "!emotes", CommandMethods.Emotes },
             { "!finecheddar", CommandMethods.FineCheddar },
-            { "!groove", CommandMethods.Groove },
-            { "!guts", CommandMethods.Guts },
+            { "!groove", CommandMethods.Groove },            
             { "!help", CommandMethods.Help },
             { "!here", CommandMethods.Here },
             { "!jacob", CommandMethods.Jacob },            
@@ -67,6 +66,7 @@ namespace ooceBot
             { "!rngmove", CommandMethods.RNGMove },
             { "!salute", CommandMethods.Salute },
             { "!schedule", CommandMethods.Schedule },
+            { "!sorrow", CommandMethods.Sorrow },
             { "!spotify", CommandMethods.Spotify },
             { "!stats", CommandMethods.Stats },
             { "!steam", CommandMethods.Steam },
@@ -89,6 +89,8 @@ namespace ooceBot
             { "!who", CommandMethods.WHO },
             { "!wtf", CommandMethods.WTF }
         };
+
+        public static bool IsAudioOrVideoPlaying { get; set; } = false;
 
         #endregion
     }

@@ -27,6 +27,9 @@ namespace ooceBot.AudioVideo
             var mediaStatus = websocket.GetMediaInputStatus(source.SourceName);
             var videoLength = mediaStatus.Duration;
 
+            // Update check for video and audio commands to prevent overlap
+            BotVariables.IsAudioOrVideoPlaying = true;
+
             // Enable, then disable after the clip is done (media needs to be active so we can retrieve the duration)
             websocket.SetSceneItemEnabled(currentScene, source.ItemId, true);
 
@@ -34,6 +37,9 @@ namespace ooceBot.AudioVideo
 
             // Now that the video has ended, disable the source
             websocket.SetSceneItemEnabled(currentScene, source.ItemId, false);
+
+            // Allow video and audio commands again
+            BotVariables.IsAudioOrVideoPlaying = false;
 
             return;
         }

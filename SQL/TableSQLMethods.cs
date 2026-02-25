@@ -106,8 +106,7 @@ namespace ooceBot.SQL
             command.CommandText = @"
                 CREATE TABLE IF NOT EXISTS CommandUsage (
                     commandID TEXT PRIMARY KEY,
-                    usage_count INTEGER NOT NULL DEFAULT 0,
-                    currently_playing INTEGER NOT NULL DEFAULT 0                    
+                    usage_count INTEGER NOT NULL DEFAULT 0                  
                 )
             ";
 

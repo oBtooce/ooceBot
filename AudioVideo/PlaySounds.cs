@@ -47,6 +47,9 @@ namespace ooceBot.AudioVideo
             track.Init(fader);
             track.Play();
 
+            // Update check for video and audio commands to prevent overlap
+            BotVariables.IsAudioOrVideoPlaying = true;
+
             while (track.PlaybackState == PlaybackState.Playing)
             {
                 double songLength = audioReader.TotalTime.TotalMilliseconds;
@@ -61,6 +64,9 @@ namespace ooceBot.AudioVideo
                     isTrackFading = true;
                 }
             }
+
+            // Allow video and audio commands again
+            BotVariables.IsAudioOrVideoPlaying = false;
         }
     }
 }

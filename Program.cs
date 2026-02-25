@@ -17,7 +17,7 @@ using ooceBot.AudioVideo;
 using System.Configuration;
 using ooceBot.Commands;
 
-public class Program
+class Program
 {
     private static TwitchClient Client { get; set; }
 
