@@ -16,6 +16,7 @@ using ooceBot.Sounds;
 using ooceBot.AudioVideo;
 using System.Configuration;
 using ooceBot.Commands;
+using TwitchLib.Api.Core;
 
 class Program
 {
@@ -23,7 +24,9 @@ class Program
 
     private static HttpClient NightbotSongRequestClient { get; set; }
 
-    private static SqliteConnection Connection { get; set; } = new SqliteConnection("Data Source=TwitchStats.db");    
+    private static SqliteConnection Connection { get; set; } = new SqliteConnection("Data Source=TwitchStats.db");
+
+    private static TwitchAPI _twitchApi = new TwitchAPI(settings: new ApiSettings { ClientId = ConfigurationManager.AppSettings["TwitchClientID"], AccessToken = ConfigurationManager.AppSettings["TwitchBroadcasterAccessToken"] });
 
     public static async Task Main(string[] args)
     {
@@ -86,12 +89,12 @@ class Program
         if (BotVariables.CommandsList.TryGetValue(messageParts.First().ToLower(), out BotVariables.Command command))
         {
             if (messageParts.Length == 1)
-                command(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, string.Empty));
+                command(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, _twitchApi, messageParts.First(), string.Empty));
             else
-                command(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, messageParts.Last()));
+                command(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, _twitchApi, messageParts.First(), messageParts.Last()));
         }
         else if (BotVariables.VideoCommands.TryGetValue(messageParts.First().ToLower(), out command))
-            command(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, string.Empty));
+            command(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, _twitchApi, messageParts.First(), string.Empty));
     }
 
     // Need to figure out what to do here in terms of having a timer play

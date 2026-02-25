@@ -90,7 +90,27 @@ namespace ooceBot.Commands
 
         public static void FineCheddar(CommandArgs args)
         {
-            args.Client.SendMessage(args.ChatMessage.Channel, $"don't get married");
+            args.Client.SendMessage(args.ChatMessage.Channel, $"Some of the finest cheese can be found here: https://en.wikipedia.org/wiki/Fianchetto");
+        }
+
+        public static async void Game(CommandArgs args)
+        {
+            if (args.ChatMessage.IsModerator || args.ChatMessage.IsBroadcaster)
+            {
+                if (!string.IsNullOrEmpty(args.CommandQuantifier))
+                {
+                    // Get the broadcaster ID for the channel modification request
+                    var users = await args.TwitchAPI.Helix.Users.GetUsersAsync(logins: new List<string> { BotVariables.ChannelToJoin });
+                    string broadcasterId = users.Users[0].Id;
+
+                    var games = await args.TwitchAPI.Helix.Games.GetGamesAsync(gameNames: new List<string> { args.CommandQuantifier });
+                    string gameId = games.Games[0].Id;
+
+                    await args.TwitchAPI.Helix.Channels.ModifyChannelInformationAsync(broadcasterId, new ModifyChannelInformationRequest { GameId = gameId });
+
+                    args.Client.SendMessage(args.ChatMessage.Channel, $"Game has been updated to \"{args.CommandQuantifier}\"");
+                }
+            }
         }
 
         public static async void Groove(CommandArgs args)
@@ -115,34 +135,32 @@ namespace ooceBot.Commands
 
         public static void Help(CommandArgs args)
         {
+            // Format the incoming string to handle ! and casing
+            string formattedCommandText = (args.CommandQuantifier ?? "").TrimStart('!').ToLower();
+
             // Standard help command
-            if (string.IsNullOrEmpty(args.CommandQuantifier))
+            if (string.IsNullOrEmpty(formattedCommandText))
             {
-                // Build up a string of command to share with the chat
+                // Build up a string of commands to share with the chat
                 string commandListMessage = "";
                 List<string> Keys = BotVariables.CommandsList.Keys.OrderBy(k => k).ToList();
 
                 foreach (var key in Keys)
-                    commandListMessage += key == Keys.Last() ? key : $"{key} | ";
+                    commandListMessage += key == Keys.Last() ? key : $"{key} • ";
 
                 commandListMessage += " [Video commands for subs/VIPs: ";
 
                 List<string> VideoKeys = BotVariables.VideoCommands.Keys.OrderBy(vk => vk).ToList();
 
                 foreach (var key in VideoKeys)
-                    commandListMessage += key == VideoKeys.Last() ? $"{key}]" : $"{key} | ";
+                    commandListMessage += key == VideoKeys.Last() ? $"{key}]" : $"{key} • ";
 
                 args.Client.SendMessage(args.ChatMessage.Channel, commandListMessage);
             }
-            else if (BotVariables.CommandsList.Keys.Contains(args.CommandQuantifier))
-            {
-                // Do some stuff
-                // Note for later: think about storing each command as the text without the ! and add that later
-            }
+            else if (BotVariables.CommandDictionary.ContainsKey(formattedCommandText))
+                args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.CommandDictionary[formattedCommandText]);
             else
-            {
                 args.Client.SendMessage(args.ChatMessage.Channel, "That command does not exist, but your enthusiasm is noted obtoocBri");
-            }
         }
 
         public static void Here(CommandArgs args)
@@ -168,10 +186,10 @@ namespace ooceBot.Commands
 
             // Create a new attendance record or update an existing one
             command.CommandText = $@"
-                        INSERT INTO ChatterAttendance (userID, attendance_count, is_present) VALUES (@userId, 1, 1)
-                        ON CONFLICT(userID)
-                        DO UPDATE SET attendance_count = attendance_count + 1, is_present = 1
-                    ";
+                INSERT INTO ChatterAttendance (userID, attendance_count, is_present) VALUES (@userId, 1, 1)
+                ON CONFLICT(userID)
+                DO UPDATE SET attendance_count = attendance_count + 1, is_present = 1
+            ";
 
             command.ExecuteNonQuery();
 
@@ -413,21 +431,18 @@ namespace ooceBot.Commands
 
         public static async void Title(CommandArgs args)
         {
-            if (!string.IsNullOrEmpty(args.CommandQuantifier))
+            if (args.ChatMessage.IsModerator || args.ChatMessage.IsBroadcaster)
             {
-                TwitchAPI api = new TwitchAPI();
+                if (!string.IsNullOrEmpty(args.CommandQuantifier))
+                {
+                    // Get the broadcaster ID for the channel modification request
+                    var users = await args.TwitchAPI.Helix.Users.GetUsersAsync(logins: new List<string> { BotVariables.ChannelToJoin });
+                    string broadcasterId = users.Users[0].Id;
 
-                // Update the API settings with client ID and OAuth token
-                api.Settings.ClientId = ConfigurationManager.AppSettings["TwitchClientID"];
-                api.Settings.AccessToken = BotVariables.TwitchOAuthToken.Split(":").Last(); // To work with TwitchAPI, the access token can not have the "oauth:" prefix, so we chop it off
+                    await args.TwitchAPI.Helix.Channels.ModifyChannelInformationAsync(broadcasterId, new ModifyChannelInformationRequest { Title = args.CommandQuantifier });
 
-                // Get the broadcaster ID for the channel modification request
-                var users = await api.Helix.Users.GetUsersAsync(logins: new List<string> { BotVariables.ChannelToJoin });
-                string broadcasterId = users.Users[0].Id;
-
-                await api.Helix.Channels.ModifyChannelInformationAsync(broadcasterId, new ModifyChannelInformationRequest { Title = args.CommandQuantifier });
-
-                args.Client.SendMessage(args.ChatMessage.Channel, $"Title has been updated to \"{args.CommandQuantifier}\"");
+                    args.Client.SendMessage(args.ChatMessage.Channel, $"Title has been updated to \"{args.CommandQuantifier}\"");
+                }
             }
         }
 

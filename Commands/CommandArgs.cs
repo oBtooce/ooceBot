@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TwitchLib.Api;
 using TwitchLib.Api.Helix.Models.Bits;
 using TwitchLib.Client;
 using TwitchLib.Client.Models;
@@ -23,16 +24,22 @@ namespace ooceBot.Commands
 
         public HttpClient NightbotSongRequestClient { get; set; }
 
+        public TwitchAPI TwitchAPI { get; set; }
+
+        public string CommandText { get; set; }
+
         public string CommandQuantifier { get; set; }
 
         public Random Random { get; set; } = new Random();
 
-        public CommandArgs(TwitchClient client, ChatMessage message, SqliteConnection connection, HttpClient nightbotSongRequestClient, string commandQuantifier)
+        public CommandArgs(TwitchClient client, ChatMessage message, SqliteConnection connection, HttpClient nightbotSongRequestClient, TwitchAPI twitchApi, string commandText, string commandQuantifier)
         {
             Client = client;
             ChatMessage = message;
             Connection = connection;
             NightbotSongRequestClient = nightbotSongRequestClient;
+            TwitchAPI = twitchApi;
+            CommandText = commandText;
             CommandQuantifier = commandQuantifier;
         }
     }
