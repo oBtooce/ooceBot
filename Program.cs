@@ -96,13 +96,4 @@ class Program
         else if (BotVariables.VideoCommands.TryGetValue(messageParts.First().ToLower(), out command))
             command(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, _twitchApi, messageParts.First(), string.Empty));
     }
-
-    // Need to figure out what to do here in terms of having a timer play
-    //private static async Task PostInChat(CancellationToken cancellationToken = default)
-    //{
-    //    while (!cancellationToken.IsCancellationRequested)
-    //    {
-    //        Client.SendMessage(args.ChatMessage.Channel, "obtoocBri obtoocBri obtoocBri obtoocBri obtoocBri");
-    //    }
-    //}
 }

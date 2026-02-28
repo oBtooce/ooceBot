@@ -186,9 +186,9 @@ namespace ooceBot.Commands
 
             // Create a new attendance record or update an existing one
             command.CommandText = $@"
-                INSERT INTO ChatterAttendance (userID, attendance_count, is_present) VALUES (@userId, 1, 1)
+                INSERT INTO ChatterAttendance (userID, attendance_count, total_attendance, is_present) VALUES (@userId, 1, 1, 1)
                 ON CONFLICT(userID)
-                DO UPDATE SET attendance_count = attendance_count + 1, is_present = 1
+                DO UPDATE SET attendance_count = attendance_count + 1, total_attendance = total_attendance + 1, is_present = 1
             ";
 
             command.ExecuteNonQuery();
