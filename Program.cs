@@ -17,16 +17,19 @@ using ooceBot.AudioVideo;
 using System.Configuration;
 using ooceBot.Commands;
 using TwitchLib.Api.Core;
+using ooceBot.Timers;
+using System.Timers;
+using TwitchLib.Api.Helix.Models.ChannelPoints;
 
 class Program
 {
-    private static TwitchClient Client { get; set; }
+    public static TwitchClient Client { get; set; }
 
     private static HttpClient NightbotSongRequestClient { get; set; }
 
     private static SqliteConnection Connection { get; set; } = new SqliteConnection("Data Source=TwitchStats.db");
 
-    private static TwitchAPI _twitchApi = new TwitchAPI(settings: new ApiSettings { ClientId = ConfigurationManager.AppSettings["TwitchClientID"], AccessToken = ConfigurationManager.AppSettings["TwitchBroadcasterAccessToken"] });
+    public static TwitchAPI _twitchApi = new TwitchAPI(settings: new ApiSettings { ClientId = ConfigurationManager.AppSettings["TwitchClientID"], AccessToken = ConfigurationManager.AppSettings["TwitchBroadcasterAccessToken"] });
 
     public static async Task Main(string[] args)
     {
@@ -59,6 +62,14 @@ class Program
         var customClient = new WebSocketClient(clientOptions);
         Client = new TwitchClient(customClient);
         Client.Initialize(credentials);
+
+        // Get the broadcaster ID for later use
+        var users = await _twitchApi.Helix.Users.GetUsersAsync(logins: new List<string> { BotVariables.ChannelToJoin });
+        BotVariables.BroadcasterID = users.Users[0].Id;
+
+        // Get all currently enabled custom rewards
+        var customRewards = await _twitchApi.Helix.ChannelPoints.GetCustomRewardAsync(BotVariables.BroadcasterID);
+        BotVariables.CustomRewards = customRewards.Data.Where(reward => reward.IsEnabled).ToList();
 
         Client.OnConnected += Client_OnConnected;
         Client.OnMessageReceived += Client_OnMessageReceived;

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TwitchLib.Api.Helix.Models.ChannelPoints;
 using static Program;
 using static System.Net.WebRequestMethods;
 
@@ -12,12 +13,17 @@ namespace ooceBot
     public static class BotVariables
     {
         #region Twitch Bot Variables
+        public static string BroadcasterID { get; set; } = "";
+
         // Token that comes from the oBtooce channel (needed for things such as changing stream titles)
         public static string? BroadcasterOAuthToken { get; set; }
 
         public static string ChannelToJoin { get; } = "obtooce";
 
         public static string BotUsername { get; } = "oocebot";
+
+        public static List<CustomReward> CustomRewards { get; set; } = new List<CustomReward>();
+
 
         #endregion
 

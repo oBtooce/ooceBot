@@ -99,14 +99,10 @@ namespace ooceBot.Commands
             {
                 if (!string.IsNullOrEmpty(args.CommandQuantifier))
                 {
-                    // Get the broadcaster ID for the channel modification request
-                    var users = await args.TwitchAPI.Helix.Users.GetUsersAsync(logins: new List<string> { BotVariables.ChannelToJoin });
-                    string broadcasterId = users.Users[0].Id;
-
                     var games = await args.TwitchAPI.Helix.Games.GetGamesAsync(gameNames: new List<string> { args.CommandQuantifier });
                     string gameId = games.Games[0].Id;
 
-                    await args.TwitchAPI.Helix.Channels.ModifyChannelInformationAsync(broadcasterId, new ModifyChannelInformationRequest { GameId = gameId });
+                    await args.TwitchAPI.Helix.Channels.ModifyChannelInformationAsync(BotVariables.BroadcasterID, new ModifyChannelInformationRequest { GameId = gameId });
 
                     args.Client.SendMessage(args.ChatMessage.Channel, $"Game has been updated to \"{args.CommandQuantifier}\"");
                 }
@@ -271,7 +267,7 @@ namespace ooceBot.Commands
 
             if (arcadeTokens.EndsWith("%") && decimal.TryParse(arcadeTokens.Split("%").First(), out decimal percentageValue) == true && percentageValue > 0 && percentageValue <= 100) // Percentage amount
             {
-                int totalTokens = ArcadeMethods.GetTotalTokens(args.Connection);
+                int totalTokens = ArcadeMethods.GetTotalTokens(args.Connection, args.ChatMessage.UserId);
 
                 // Get the proper token value from the percentage
                 decimal percentAsNumber = percentageValue / 100;
@@ -291,7 +287,7 @@ namespace ooceBot.Commands
             else if (int.TryParse(arcadeTokens, out int tokenAmount) && tokenAmount > 0) // Flat token amount
             {
                 // Verify if the token amount is within the user's total token stash and proceed if so, else jump out with a warning
-                int totalTokens = ArcadeMethods.GetTotalTokens(args.Connection);
+                int totalTokens = ArcadeMethods.GetTotalTokens(args.Connection, args.ChatMessage.UserId);
 
                 if (totalTokens > tokenAmount)
                 {
@@ -435,11 +431,7 @@ namespace ooceBot.Commands
             {
                 if (!string.IsNullOrEmpty(args.CommandQuantifier))
                 {
-                    // Get the broadcaster ID for the channel modification request
-                    var users = await args.TwitchAPI.Helix.Users.GetUsersAsync(logins: new List<string> { BotVariables.ChannelToJoin });
-                    string broadcasterId = users.Users[0].Id;
-
-                    await args.TwitchAPI.Helix.Channels.ModifyChannelInformationAsync(broadcasterId, new ModifyChannelInformationRequest { Title = args.CommandQuantifier });
+                    await args.TwitchAPI.Helix.Channels.ModifyChannelInformationAsync(BotVariables.BroadcasterID, new ModifyChannelInformationRequest { Title = args.CommandQuantifier });
 
                     args.Client.SendMessage(args.ChatMessage.Channel, $"Title has been updated to \"{args.CommandQuantifier}\"");
                 }

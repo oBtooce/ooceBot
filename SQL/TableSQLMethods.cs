@@ -37,7 +37,8 @@ namespace ooceBot.SQL
             command.CommandText = @"
                 CREATE TABLE IF NOT EXISTS Chatters (
                     userID TEXT PRIMARY KEY,
-                    username TEXT
+                    username TEXT,
+                    has_theme INTEGER NOT NULL DEFAULT 0
                 )
             ";
 

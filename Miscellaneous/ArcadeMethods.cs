@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TwitchLib.Api.Helix.Models.Charity.GetCharityCampaign;
+using TwitchLib.Client.Models;
 
 namespace ooceBot.Miscellaneous
 {
@@ -71,11 +72,13 @@ namespace ooceBot.Miscellaneous
             return currentStats;
         }
 
-        public static int GetTotalTokens(SqliteConnection Connection)
+        public static int GetTotalTokens(SqliteConnection Connection, string userID)
         {
             var tokenTotal = Connection.CreateCommand();
+            tokenTotal.Parameters.AddWithValue("@userID", userID);
 
-            tokenTotal.CommandText = $"SELECT total_tokens FROM ArcadeStats";
+            // todo: add where clause to attach to specific chatter
+            tokenTotal.CommandText = $"SELECT total_tokens FROM ArcadeStats WHERE userID = @userID";
 
             return Convert.ToInt32(tokenTotal.ExecuteScalar());
         }
