@@ -6,20 +6,12 @@ using TwitchLib.Client.Models;
 using TwitchLib.Communication.Clients;
 using TwitchLib.Communication.Models;
 using ooceBot;
-using ooceBot.Functionality;
-using TwitchLib.Api.Helix.Models.Channels.ModifyChannelInformation;
-using OBSWebsocketDotNet;
 using ooceBot.Authorization;
-using ooceBot.Miscellaneous;
 using ooceBot.SQL;
-using ooceBot.Sounds;
-using ooceBot.AudioVideo;
 using System.Configuration;
 using ooceBot.Commands;
 using TwitchLib.Api.Core;
 using ooceBot.Timers;
-using System.Timers;
-using TwitchLib.Api.Helix.Models.ChannelPoints;
 
 class Program
 {
@@ -88,6 +80,8 @@ class Program
     private static void Client_OnConnected(object sender, OnConnectedArgs e)
     {
         Client.JoinChannel(BotVariables.ChannelToJoin);
+
+        _ = TimerMethods.PostMessageInChat(Client, TimeSpan.FromMinutes(20));
     }
 
     private static async void Client_OnMessageReceived(object sender, OnMessageReceivedArgs e)
