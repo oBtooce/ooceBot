@@ -1,6 +1,8 @@
 ﻿using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -51,6 +53,32 @@ namespace ooceBot.SQL
             {
                 command.CommandText = "UPDATE Chatters SET userID = @chatterid, username = @chatter WHERE userID = @chatterid OR username = @chatter";
                 command.ExecuteNonQuery();
+            }
+        }
+
+        public static void UpdateChatterDataPlusMaybeTheme(SqliteConnection connection, ChatMessage message)
+        {
+            connection.Open();
+
+            var command = connection.CreateCommand();
+            command.Parameters.AddWithValue("@userId", message.UserId);
+            command.Parameters.AddWithValue("@username", message.Username);
+
+            command.CommandText = $@"
+                INSERT INTO Chatters (userID, username, has_theme, has_chatted_this_stream) VALUES (@userId, @username, 0, 1)
+                ON CONFLICT(userID)
+                DO UPDATE SET has_chatted_this_stream = 1
+            ";
+
+            using (SqliteDataReader reader = command.ExecuteReader())
+            {
+                // Since Sqlite does not have a bool primitive, we check for 1 from the return
+                var hasCustomIntro = reader.GetInt32(reader.GetOrdinal("has_theme"));
+
+                if (hasCustomIntro == 1)
+                {
+                    // do work here
+                }
             }
         }
     }

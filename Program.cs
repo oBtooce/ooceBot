@@ -86,6 +86,8 @@ class Program
 
     private static async void Client_OnMessageReceived(object sender, OnMessageReceivedArgs e)
     {
+        DBQueryMethods.UpdateChatterDataPlusMaybeTheme(Connection, e.ChatMessage);
+
         string[] messageParts = e.ChatMessage.Message.Split(new char[] { ' ' }, 2);
 
         // Open new connection

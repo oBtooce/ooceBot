@@ -38,7 +38,8 @@ namespace ooceBot.SQL
                 CREATE TABLE IF NOT EXISTS Chatters (
                     userID TEXT PRIMARY KEY,
                     username TEXT,
-                    has_theme INTEGER NOT NULL DEFAULT 0
+                    has_theme INTEGER NOT NULL DEFAULT 0,
+                    has_chatted_this_stream INTEGER NOT NULL DEFAULT 0
                 )
             ";
 

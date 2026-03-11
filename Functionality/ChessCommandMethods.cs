@@ -49,6 +49,7 @@ namespace ooceBot.Functionality
                             return;
                         }
 
+                        // Chesscom uses Unix timestamps for their time tracking, so we need to convert to a readable format
                         double startDate = joinedThing.GetDouble();
                         string joinDate = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(startDate).ToShortDateString();
 
