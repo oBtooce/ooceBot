@@ -40,7 +40,7 @@ namespace ooceBot.Functionality
             }
             else
             {
-                var randomIndex = random.Next(0, quoteLines.Length - 1);
+                var randomIndex = random.Next(0, quoteLines.Length);
                 return quoteLines[randomIndex];
             }
         }

@@ -8,6 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="ooceBot.Tests\**" />
+    <None Remove="ooceBot.Tests\**" />
+    <Content Remove="ooceBot.Tests\**" />
+    <EmbeddedResource Remove="ooceBot.Tests\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.2" />
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="obs-websocket-dotnet" Version="5.0.1" />
