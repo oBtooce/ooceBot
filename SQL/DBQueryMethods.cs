@@ -70,16 +70,16 @@ namespace ooceBot.SQL
                 DO UPDATE SET has_chatted_this_stream = 1
             ";
 
-            using (SqliteDataReader reader = command.ExecuteReader())
-            {
-                // Since Sqlite does not have a bool primitive, we check for 1 from the return
-                var hasCustomIntro = reader.GetInt32(reader.GetOrdinal("has_theme"));
+            //using (SqliteDataReader reader = command.ExecuteReader())
+            //{
+            //    // Since Sqlite does not have a bool primitive, we check for 1 from the return
+            //    var hasCustomIntro = reader.GetInt32(reader.GetOrdinal("has_theme"));
 
-                if (hasCustomIntro == 1)
-                {
-                    // do work here
-                }
-            }
+            //    if (hasCustomIntro == 1)
+            //    {
+            //        // do work here
+            //    }
+            //}
         }
     }
 }

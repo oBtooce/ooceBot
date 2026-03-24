@@ -37,6 +37,8 @@ namespace ooceBot
         public static int[] RANK_NOTATION = new int[8] { 1, 2, 3, 4, 5, 6, 7, 8 };
 
         public static int DEFAULT_BUYIN = 100;
+
+        public static int DEFAULT_NIGHTBOT_VOLUME = 60;
         #endregion
 
         #region Application Credentials
@@ -47,6 +49,15 @@ namespace ooceBot
         #region Command List Information
 
         public delegate void Command(CommandArgs args);
+
+        public static Dictionary<string, Command> AdminCommands { get; set; } = new Dictionary<string, Command>()
+        {
+            { "back", AdminCommandMethods.Back },
+            { "brb", AdminCommandMethods.BRB },
+            { "!game", AdminCommandMethods.Game },
+            { "!rngmove", AdminCommandMethods.RNGMove },
+            { "!title", AdminCommandMethods.Title },
+        };
 
         public static Dictionary<string, Command> CommandsList { get; set; } = new Dictionary<string, Command>()
         {
@@ -60,7 +71,6 @@ namespace ooceBot
             { "!discord", CommandMethods.Discord },
             { "!emotes", CommandMethods.Emotes },
             { "!finecheddar", CommandMethods.FineCheddar },
-            { "!game", CommandMethods.Game },
             { "!groove", CommandMethods.Groove },            
             { "!help", CommandMethods.Help },
             { "!here", CommandMethods.Here },
@@ -69,16 +79,14 @@ namespace ooceBot
             { "!play", CommandMethods.Play },
             { "!quote", CommandMethods.Quote },
             { "!randomquote", CommandMethods.RandomQuote },
-            { "!rq", CommandMethods.RandomQuote },
-            { "!rngmove", CommandMethods.RNGMove },
+            { "!rq", CommandMethods.RandomQuote },            
             { "!salute", CommandMethods.Salute },
             { "!schedule", CommandMethods.Schedule },
             { "!sorrow", CommandMethods.Sorrow },
             { "!spotify", CommandMethods.Spotify },
             { "!stats", CommandMethods.Stats },
             { "!steam", CommandMethods.Steam },
-            { "!tarf", CommandMethods.Tarf },
-            { "!title", CommandMethods.Title },
+            { "!tarf", CommandMethods.Tarf },            
             { "!twitter", CommandMethods.Twitter },
             { "!twt", CommandMethods.Twitter },
             { "!vid", CommandMethods.Vid },            
@@ -92,9 +100,9 @@ namespace ooceBot
 
         public static Dictionary<string, Command> VideoCommands = new Dictionary<string, Command>()
         {
-            { "!lobster", CommandMethods.Lobster },
-            { "!who", CommandMethods.WHO },
-            { "!wtf", CommandMethods.WTF }
+            { "!lobster", VideoCommandMethods.Lobster },
+            { "!who", VideoCommandMethods.WHO },
+            { "!wtf", VideoCommandMethods.WTF }
         };
 
         public static Dictionary<string, string> CommandDictionary { get; set; } = new Dictionary<string, string>()
@@ -118,7 +126,6 @@ namespace ooceBot
             { "quote", "Displays a random quote from history." },
             { "randomquote", "Displays a random quote from history." },
             { "rq", "Displays a random quote from history." },
-            { "rngmove", "Chooses the move to be played in a blitz game (only usable by mods and above)." },
             { "salute", "Song plays!" },
             { "schedule", "Displays the current stream schedule." },
             { "sorrow", "Song plays!" },
@@ -126,7 +133,6 @@ namespace ooceBot
             { "stats", "Checks rapid, blitz, and bullet statistics for the specified chess.com account." },
             { "steam", "Displays a link to oBtooce's Steam page." },
             { "tarf", "Special command dedicated to a member of the community. Try it out!" },
-            { "title", "Sets the title of the stream (available for mods and above)." },
             { "twitter", "Displays a link to oBtooce's Twitter page." },
             { "twt", "Displays a link to oBtooce's Twitter page." },
             { "vid", "Displays a link to oBtooce's latest YouTube video." },
