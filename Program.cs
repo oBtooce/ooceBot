@@ -93,18 +93,12 @@ class Program
         // Open new connection
         Connection.Open();
 
-        if (BotVariables.CommandsList.TryGetValue(messageParts.First().ToLower(), out BotVariables.Command command))
+        if (BotVariables.CommandsList.TryGetValue(messageParts.First().ToLower(), out BotVariables.Command command) || BotVariables.AdminCommands.TryGetValue(messageParts.First().ToLower(), out command))
             if (messageParts.Length == 1)
                 command(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, _twitchApi, messageParts.First(), string.Empty));
             else
                 command(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, _twitchApi, messageParts.First(), messageParts.Last()));
-        else if (BotVariables.VideoCommands.TryGetValue(messageParts.First().ToLower(), out command))
+        else if (BotVariables.VideoCommands.TryGetValue(messageParts.First().ToLower(), out command) || BotVariables.WordCommands.TryGetValue(messageParts.First().ToLower(), out command))
             command(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, _twitchApi, messageParts.First(), string.Empty));
-
-        else if (BotVariables.AdminCommands.TryGetValue(messageParts.First().ToLower(), out command))
-            if (messageParts.Length == 1)
-                command(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, _twitchApi, messageParts.First(), string.Empty));
-            else
-                command(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, _twitchApi, messageParts.First(), messageParts.Last()));
     }
 }

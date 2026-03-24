@@ -63,7 +63,7 @@ namespace ooceBot.Commands
             // Check balances for player and provide tokens if balance is empty
             ArcadeMethods.HandleBuyins(args.Connection, args.ChatMessage.UserId, BotVariables.DEFAULT_BUYIN);
 
-            args.Client.SendMessage(args.ChatMessage.Channel, $"{args.ChatMessage.DisplayName}, you now have {BotVariables.DEFAULT_BUYIN} tokens to play with. Have fun obtoocBri");
+            args.Client.SendMessage(args.ChatMessage.Channel, $"{args.ChatMessage.DisplayName}, you have been given {BotVariables.DEFAULT_BUYIN} tokens. Have fun obtoocBri");
         }
 
         public static void Croissant(CommandArgs args)
@@ -83,11 +83,6 @@ namespace ooceBot.Commands
         public static void Exclaim(CommandArgs args)
         {
             args.Client.SendMessage(args.ChatMessage.Channel, "obtoocBri obtoocBri obtoocBri obtoocBri obtoocBri");
-        }
-
-        public static void F(CommandArgs args)
-        {
-            args.Client.SendMessage(args.ChatMessage.Channel, "obtoocF obtoocF obtoocF obtoocF obtoocF");
         }
 
         public static void FineCheddar(CommandArgs args)
@@ -149,6 +144,7 @@ namespace ooceBot.Commands
         {
             var command = args.Connection.CreateCommand();
             command.Parameters.AddWithValue("@userId", args.ChatMessage.UserId);
+            command.Parameters.AddWithValue("@pointValue", BotVariables.ATTENDANCE_POINT_VALUE);
 
             var chatterUserID = args.ChatMessage.UserId;
             var chatterDisplayName = args.ChatMessage.DisplayName;
@@ -182,8 +178,14 @@ namespace ooceBot.Commands
             string message;
             int daysInClass = attendanceCount % 10;
 
+            // When reaching 10 days, reward with points
             if (daysInClass == 0)
-                message = $"obtoocW obtoocW Congratulations! obtoocW obtoocW    {chatterDisplayName}, to reward you for your regular attendance, you get to redeem a channel point reward for free (up to a value of 2000 points) obtoocBri";
+            {
+                message = $"obtoocW obtoocW Congratulations! obtoocW obtoocW    {chatterDisplayName}, to reward you for your regular attendance, you get {BotVariables.ATTENDANCE_POINT_VALUE} \"points\" to spend on channel point redemptions obtoocBri";
+
+                command.CommandText = $"UPDATE ChatterAttendance SET attendance_count = 0, points_for_redemption = points_for_redemption + @pointValue WHERE userID = @userId";
+                command.ExecuteNonQuery();
+            }
             else
                 message = $"{chatterDisplayName}, your attendance has been recorded. You have {daysInClass} {(daysInClass == 1 ? "day" : "days")} on record. Let's see what happens when you reach 10 days obtoocBri";
 
@@ -199,11 +201,6 @@ namespace ooceBot.Commands
         public static void Lurk(CommandArgs args)
         {
             args.Client.SendMessage(args.ChatMessage.Channel, $"{args.ChatMessage.Username}, your continued support is greatly appreciated. Talk to you soon obtoocBri");
-        }
-
-        public static void Nice(CommandArgs args)
-        {
-            args.Client.SendMessage(args.ChatMessage.Channel, "obtoocNice obtoocNice obtoocNice obtoocNice obtoocNice");
         }
 
         public static void Play(CommandArgs args)
@@ -291,6 +288,18 @@ namespace ooceBot.Commands
             args.Client.SendMessage(args.ChatMessage.Channel, QuoteCommandMethods.SelectQuote());
         }
 
+        public static void Rewards(CommandArgs args)
+        {
+            args.Client.SendMessage(args.ChatMessage.Channel, "Here is the list of channel point rewards: ");
+
+            string rewardsMessage = string.Empty;
+
+            for (var i = 0; i < BotVariables.CustomRewards.Count; i++)
+            {
+                rewardsMessage += (i == (BotVariables.CustomRewards.Count - 1) ? $"{BotVariables.CustomRewards[i].Title}" : $"{BotVariables.CustomRewards[i].Title} • ");
+            }
+        }
+
         public static async void Salute(CommandArgs args)
         {
             if (args.ChatMessage.IsVip || args.ChatMessage.IsSubscriber || args.ChatMessage.IsModerator || args.ChatMessage.IsBroadcaster)
@@ -362,6 +371,11 @@ namespace ooceBot.Commands
             args.Client.SendMessage(args.ChatMessage.Channel, "oBtooce's Steam page: https://steamcommunity.com/id/obtooce/");
         }
 
+        public static void Store(CommandArgs args)
+        {
+            //
+        }
+
         public static void Tarf(CommandArgs args)
         {
             args.Client.SendMessage(args.ChatMessage.Channel, $"you gotta be bad, you gotta be bold, you gotta be wiser, you gotta be hard, you gotta be tough, you gotta be stronger, you gotta be cool, you gotta be calm, you gotta stay together, all i know love will save the day - corrected");
@@ -375,11 +389,6 @@ namespace ooceBot.Commands
         public static void Vid(CommandArgs args)
         {
             args.Client.SendMessage(args.ChatMessage.Channel, "Latest YouTube video: https://youtu.be/STmFRwBFvqc");
-        }
-
-        public static void W(CommandArgs args)
-        {
-            args.Client.SendMessage(args.ChatMessage.Channel, "obtoocW obtoocW obtoocW obtoocW obtoocW");
         }
 
         public static void YouTube(CommandArgs args)

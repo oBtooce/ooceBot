@@ -39,6 +39,8 @@ namespace ooceBot
         public static int DEFAULT_BUYIN = 100;
 
         public static int DEFAULT_NIGHTBOT_VOLUME = 60;
+
+        public static int ATTENDANCE_POINT_VALUE = 2000;
         #endregion
 
         #region Application Credentials
@@ -79,23 +81,22 @@ namespace ooceBot
             { "!play", CommandMethods.Play },
             { "!quote", CommandMethods.Quote },
             { "!randomquote", CommandMethods.RandomQuote },
-            { "!rq", CommandMethods.RandomQuote },            
+            { "!rq", CommandMethods.RandomQuote },
+            { "!rewards", CommandMethods.Rewards },
             { "!salute", CommandMethods.Salute },
             { "!schedule", CommandMethods.Schedule },
             { "!sorrow", CommandMethods.Sorrow },
             { "!spotify", CommandMethods.Spotify },
             { "!stats", CommandMethods.Stats },
             { "!steam", CommandMethods.Steam },
-            { "!tarf", CommandMethods.Tarf },            
+            { "!store", CommandMethods.Store },
+            { "!tarf", CommandMethods.Tarf },
             { "!twitter", CommandMethods.Twitter },
             { "!twt", CommandMethods.Twitter },
-            { "!vid", CommandMethods.Vid },            
+            { "!vid", CommandMethods.Vid },
             { "!youtube", CommandMethods.YouTube },
             { "!yt", CommandMethods.YouTube },
-            //{ "based", CommandMethods.Based },
-            { "f", CommandMethods.F },
-            { "nice", CommandMethods.Nice },
-            { "w", CommandMethods.W }
+            //{ "based", CommandMethods.Based }
         };
 
         public static Dictionary<string, Command> VideoCommands = new Dictionary<string, Command>()
@@ -103,6 +104,15 @@ namespace ooceBot
             { "!lobster", VideoCommandMethods.Lobster },
             { "!who", VideoCommandMethods.WHO },
             { "!wtf", VideoCommandMethods.WTF }
+        };
+
+        public static Dictionary<string, Command> WordCommands = new Dictionary<string, Command>()
+        {
+            { "f", WordCommandMethods.F },
+            { "lol", WordCommandMethods.Lol },
+            { "nice", WordCommandMethods.Nice },
+            { "w", WordCommandMethods.W },
+            { "wow", WordCommandMethods.Wow }
         };
 
         public static Dictionary<string, string> CommandDictionary { get; set; } = new Dictionary<string, string>()

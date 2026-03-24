@@ -61,6 +61,7 @@ namespace ooceBot.SQL
                     attendance_count INTEGER DEFAULT 0,
                     total_attendance INTEGER NOT NULL DEFAULT 0,
                     is_present INTEGER NOT NULL DEFAULT 0,
+                    points_for_redemption INTEGER NOT NULL DEFAULT 0,
                     FOREIGN KEY (userID) REFERENCES Chatters(userID)
                 )
             ";
