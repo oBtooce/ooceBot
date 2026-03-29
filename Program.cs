@@ -61,7 +61,15 @@ class Program
 
         // Get all currently enabled custom rewards
         var customRewards = await _twitchApi.Helix.ChannelPoints.GetCustomRewardAsync(BotVariables.BroadcasterID);
-        BotVariables.CustomRewards = customRewards.Data.Where(reward => reward.IsEnabled).ToList();
+
+        // Add each value to the dictionary
+        var redeemData = customRewards.Data.Where(reward => reward.IsEnabled).OrderBy(reward => reward.Cost).ToList();
+
+        // Setting start value to 1 to make it easier for user selection
+        for (int i = 0; i < redeemData.Count; i++)
+            BotVariables.CustomRewards.Add(i + 1, redeemData[i]);
+
+        await GistManager.UpdateRewardsGist(BotVariables.CustomRewards);
 
         Client.OnConnected += Client_OnConnected;
         Client.OnMessageReceived += Client_OnMessageReceived;

@@ -12,6 +12,15 @@ namespace ooceBot
 {
     public static class BotVariables
     {
+        #region Twitch Emote Variables
+
+        public static string obtoocBri { get; } = "obtoocBri";
+        public static string obtoocF { get; } = "obtoocF";
+        public static string obtoocOmg { get; } = "obtoocOmg";
+        public static string obtoocNice { get; } = "obtoocNice";
+        public static string obtoocW { get; } = "obtoocW";
+
+        #endregion
         #region Twitch Bot Variables
         public static string BroadcasterID { get; set; } = "";
 
@@ -22,8 +31,7 @@ namespace ooceBot
 
         public static string BotUsername { get; } = "oocebot";
 
-        public static List<CustomReward> CustomRewards { get; set; } = new List<CustomReward>();
-
+        public static Dictionary<int, CustomReward> CustomRewards { get; set; } = new Dictionary<int, CustomReward>();
 
         #endregion
 
@@ -82,6 +90,7 @@ namespace ooceBot
             { "!quote", CommandMethods.Quote },
             { "!randomquote", CommandMethods.RandomQuote },
             { "!rq", CommandMethods.RandomQuote },
+            { "!redeem", CommandMethods.Redeem },
             { "!rewards", CommandMethods.Rewards },
             { "!salute", CommandMethods.Salute },
             { "!schedule", CommandMethods.Schedule },
@@ -91,6 +100,8 @@ namespace ooceBot
             { "!steam", CommandMethods.Steam },
             { "!store", CommandMethods.Store },
             { "!tarf", CommandMethods.Tarf },
+            { "!tokens", CommandMethods.Tokens },
+            { "!top10", CommandMethods.TopPlayers },
             { "!twitter", CommandMethods.Twitter },
             { "!twt", CommandMethods.Twitter },
             { "!vid", CommandMethods.Vid },

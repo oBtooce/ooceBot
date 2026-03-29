@@ -1,4 +1,5 @@
-﻿using OBSWebsocketDotNet;
+﻿using Microsoft.Data.Sqlite;
+using OBSWebsocketDotNet;
 using ooceBot.AudioVideo;
 using ooceBot.Authorization;
 using ooceBot.Functionality;
@@ -12,6 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TwitchLib.Api;
+using TwitchLib.Api.Helix.Models.ChannelPoints;
 using TwitchLib.Api.Helix.Models.Channels.ModifyChannelInformation;
 using TwitchLib.Api.Helix.Models.Soundtrack;
 using TwitchLib.Communication.Interfaces;
@@ -26,7 +28,7 @@ namespace ooceBot.Commands
             if (args.CommandQuantifier != string.Empty)
             {
                 QuoteCommandMethods.AddQuote(args.CommandQuantifier);
-                args.Client.SendMessage(args.ChatMessage.Channel, $"Quote added. Thank you for creating history in oBtooce's stream!");
+                args.Client.SendMessage(args.ChatMessage.Channel, $"Quote added. Thank you for creating history in the stream {BotVariables.obtoocBri}");
             }
             else
                 args.Client.SendMessage(args.ChatMessage.Channel, $"When using the !addquote command, don't forget to include the quote! The command looks like this: !addquote \"insert quote here\"");
@@ -63,7 +65,7 @@ namespace ooceBot.Commands
             // Check balances for player and provide tokens if balance is empty
             ArcadeMethods.HandleBuyins(args.Connection, args.ChatMessage.UserId, BotVariables.DEFAULT_BUYIN);
 
-            args.Client.SendMessage(args.ChatMessage.Channel, $"{args.ChatMessage.DisplayName}, you have been given {BotVariables.DEFAULT_BUYIN} tokens. Have fun obtoocBri");
+            args.Client.SendMessage(args.ChatMessage.Channel, $"{args.ChatMessage.DisplayName}, you have been given {BotVariables.DEFAULT_BUYIN} tokens. Have fun {BotVariables.obtoocBri}");
         }
 
         public static void Croissant(CommandArgs args)
@@ -78,11 +80,11 @@ namespace ooceBot.Commands
 
         public static void Emotes(CommandArgs args)
         {
-            args.Client.SendMessage(args.ChatMessage.Channel, "Follower emotes: obtoocBri obtoocF obtoocW obtoocNice obtoocOmg");
+            args.Client.SendMessage(args.ChatMessage.Channel, $"Follower emotes: {BotVariables.obtoocBri} {BotVariables.obtoocF} {BotVariables.obtoocW} {BotVariables.obtoocNice} {BotVariables.obtoocOmg}");
         }
         public static void Exclaim(CommandArgs args)
         {
-            args.Client.SendMessage(args.ChatMessage.Channel, "obtoocBri obtoocBri obtoocBri obtoocBri obtoocBri");
+            args.Client.SendMessage(args.ChatMessage.Channel, $"{BotVariables.obtoocBri} {BotVariables.obtoocBri} {BotVariables.obtoocBri} {BotVariables.obtoocBri} {BotVariables.obtoocBri}");
         }
 
         public static void FineCheddar(CommandArgs args)
@@ -137,7 +139,7 @@ namespace ooceBot.Commands
             else if (BotVariables.CommandDictionary.ContainsKey(formattedCommandText))
                 args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.CommandDictionary[formattedCommandText]);
             else
-                args.Client.SendMessage(args.ChatMessage.Channel, "That command does not exist, but your enthusiasm is noted obtoocBri");
+                args.Client.SendMessage(args.ChatMessage.Channel, $"That command does not exist, but your enthusiasm is noted {BotVariables.obtoocBri}");
         }
 
         public static void Here(CommandArgs args)
@@ -158,7 +160,7 @@ namespace ooceBot.Commands
             // If the user exists but attendance was already taken, then prevent it from happening again
             if (attendanceTakenValue != null && (long)attendanceTakenValue == 1)
             {
-                args.Client.SendMessage(args.ChatMessage.Channel, "Your attendance has already been taken. Check in next time obtoocBri");
+                args.Client.SendMessage(args.ChatMessage.Channel, $"Your attendance has already been taken. Check in next time {BotVariables.obtoocBri}");
                 return;
             }
 
@@ -181,13 +183,13 @@ namespace ooceBot.Commands
             // When reaching 10 days, reward with points
             if (daysInClass == 0)
             {
-                message = $"obtoocW obtoocW Congratulations! obtoocW obtoocW    {chatterDisplayName}, to reward you for your regular attendance, you get {BotVariables.ATTENDANCE_POINT_VALUE} \"points\" to spend on channel point redemptions obtoocBri";
+                message = $"{BotVariables.obtoocW} {BotVariables.obtoocW} Congratulations! {BotVariables.obtoocW} {BotVariables.obtoocW}    {chatterDisplayName}, to reward you for your regular attendance, you get {BotVariables.ATTENDANCE_POINT_VALUE} \"points\" to spend on channel point redemptions {BotVariables.obtoocBri}";
 
                 command.CommandText = $"UPDATE ChatterAttendance SET attendance_count = 0, points_for_redemption = points_for_redemption + @pointValue WHERE userID = @userId";
                 command.ExecuteNonQuery();
             }
             else
-                message = $"{chatterDisplayName}, your attendance has been recorded. You have {daysInClass} {(daysInClass == 1 ? "day" : "days")} on record. Let's see what happens when you reach 10 days obtoocBri";
+                message = $"{chatterDisplayName}, your attendance has been recorded. You have {daysInClass} {(daysInClass == 1 ? "day" : "days")} on record. Let's see what happens when you reach 10 days {BotVariables.obtoocBri}";
 
             // Let 'em know
             args.Client.SendMessage(args.ChatMessage.Channel, message);
@@ -200,7 +202,7 @@ namespace ooceBot.Commands
 
         public static void Lurk(CommandArgs args)
         {
-            args.Client.SendMessage(args.ChatMessage.Channel, $"{args.ChatMessage.Username}, your continued support is greatly appreciated. Talk to you soon obtoocBri");
+            args.Client.SendMessage(args.ChatMessage.Channel, $"{args.ChatMessage.Username}, your continued support is greatly appreciated. Talk to you soon {BotVariables.obtoocBri}");
         }
 
         public static void Play(CommandArgs args)
@@ -208,7 +210,7 @@ namespace ooceBot.Commands
             // Make sure that the user exists before doing anything
             if (!ArcadeMethods.CheckForPlayer(args.Connection, args.ChatMessage.UserId))
             {
-                args.Client.SendMessage(args.ChatMessage.Channel, $"Looks like this is your first time at the arcade. Type !buyin to get your first set of tokens obtoocBri");
+                args.Client.SendMessage(args.ChatMessage.Channel, $"Looks like this is your first time at the arcade. Type !buyin to get your first set of tokens {BotVariables.obtoocBri}");
                 return;
             }
 
@@ -229,7 +231,7 @@ namespace ooceBot.Commands
                 ArcadeMethods.UpdateArcadeRecord(ref arcadeRecord, tokenValueFromPercentage, args.Connection, args.ChatMessage.UserId);
 
                 if (arcadeRecord.DidWinWager)
-                    args.Client.SendMessage(args.ChatMessage.Channel, $"obtoocW Nice win, {args.ChatMessage.DisplayName}! obtoocW Looks like you've got {arcadeRecord.TotalTokens} tokens to spend.");
+                    args.Client.SendMessage(args.ChatMessage.Channel, $"{BotVariables.obtoocW} Nice win, {args.ChatMessage.DisplayName}! {BotVariables.obtoocW} Looks like you've got {arcadeRecord.TotalTokens} tokens to spend.");
                 else
                     args.Client.SendMessage(args.ChatMessage.Channel, $"Oof...no luck this time, {args.ChatMessage.DisplayName}. Your new token total is {arcadeRecord.TotalTokens}.");
             }
@@ -238,7 +240,7 @@ namespace ooceBot.Commands
                 // Verify if the token amount is within the user's total token stash and proceed if so, else jump out with a warning
                 int totalTokens = ArcadeMethods.GetTotalTokens(args.Connection, args.ChatMessage.UserId);
 
-                if (totalTokens > tokenAmount)
+                if (totalTokens >= tokenAmount)
                 {
                     // Calculate whether or not the wager won or lost
                     ArcadeStats arcadeRecord = ArcadeMethods.GetPlayerCurrentStats(args.Connection, args.ChatMessage.UserId);
@@ -247,12 +249,12 @@ namespace ooceBot.Commands
                     ArcadeMethods.UpdateArcadeRecord(ref arcadeRecord, tokenAmount, args.Connection, args.ChatMessage.UserId);
 
                     if (arcadeRecord.DidWinWager)
-                        args.Client.SendMessage(args.ChatMessage.Channel, $"obtoocW Nice win, {args.ChatMessage.DisplayName}! obtoocW Looks like you've got {arcadeRecord.TotalTokens} tokens to spend.");
+                        args.Client.SendMessage(args.ChatMessage.Channel, $"{BotVariables.obtoocW} Nice win, {args.ChatMessage.DisplayName}! {BotVariables.obtoocW} Looks like you've got {arcadeRecord.TotalTokens} tokens to spend.");
                     else
                         args.Client.SendMessage(args.ChatMessage.Channel, $"Oof...no luck this time, {args.ChatMessage.DisplayName}. Your new token total is {arcadeRecord.TotalTokens}.");
                 }
                 else
-                    args.Client.SendMessage(args.ChatMessage.Channel, "You don't have enough tokens to make that bet. Try again later obtoocBri");
+                    args.Client.SendMessage(args.ChatMessage.Channel, $"You don't have enough tokens to make that bet. To see your current token total, type !tokens {BotVariables.obtoocBri}");
             }
             else
                 args.Client.SendMessage(args.ChatMessage.Channel, "This seems...off. Try again with either a number (50) or a valid percentage (50%).");
@@ -288,16 +290,36 @@ namespace ooceBot.Commands
             args.Client.SendMessage(args.ChatMessage.Channel, QuoteCommandMethods.SelectQuote());
         }
 
+        public static void Redeem(CommandArgs args)
+        {
+            // Three things to check: there is text; the text translates to a number; and the number is found within the dictionary
+            if (!string.IsNullOrEmpty(args.CommandQuantifier) && int.TryParse(args.CommandQuantifier, out int key) && BotVariables.CustomRewards.TryGetValue(key, out CustomReward reward))
+            {
+                var command = args.Connection.CreateCommand();
+                command.Parameters.AddWithValue("@userId", args.ChatMessage.UserId);
+
+                command.CommandText = $"SELECT points_for_redemption FROM ChatterAttendance WHERE userID = @userId";
+                var attendancePoints = command.ExecuteScalar();
+
+                if (attendancePoints != null && (long)attendancePoints > reward.Cost)
+                {
+                    var updatedPoints = (long)attendancePoints - reward.Cost;
+
+                    command.CommandText = $"UPDATE ChatterAttendance SET points_for_redemption = {updatedPoints} WHERE userID = @userId";
+                    command.ExecuteNonQuery();
+
+                    args.Client.SendMessage(args.ChatMessage.Channel, $"{args.ChatMessage.DisplayName}, you redeemed \"{reward.Title}\" for {reward.Cost} points. Your remaining total is {updatedPoints}. Thanks for hanging out in chat {BotVariables.obtoocBri}");
+                }
+                else
+                    args.Client.SendMessage(args.ChatMessage.Channel, $"{args.ChatMessage.DisplayName}, you do not have enough points to afford that reward. Pick something else {BotVariables.obtoocBri}");
+            }
+            else
+                args.Client.SendMessage(args.ChatMessage.Channel, $"To redeem a reward, please enter a number from 1 to {BotVariables.CustomRewards.Count}. You can find the list of rewards here: {ConfigurationManager.AppSettings["GitHubGistUrl"]}");
+        }
+
         public static void Rewards(CommandArgs args)
         {
-            args.Client.SendMessage(args.ChatMessage.Channel, "Here is the list of channel point rewards: ");
-
-            string rewardsMessage = string.Empty;
-
-            for (var i = 0; i < BotVariables.CustomRewards.Count; i++)
-            {
-                rewardsMessage += (i == (BotVariables.CustomRewards.Count - 1) ? $"{BotVariables.CustomRewards[i].Title}" : $"{BotVariables.CustomRewards[i].Title} • ");
-            }
+            args.Client.SendMessage(args.ChatMessage.Channel, $"Check out all channel point rewards here: {ConfigurationManager.AppSettings["GitHubGistUrl"]}");
         }
 
         public static async void Salute(CommandArgs args)
@@ -379,6 +401,39 @@ namespace ooceBot.Commands
         public static void Tarf(CommandArgs args)
         {
             args.Client.SendMessage(args.ChatMessage.Channel, $"you gotta be bad, you gotta be bold, you gotta be wiser, you gotta be hard, you gotta be tough, you gotta be stronger, you gotta be cool, you gotta be calm, you gotta stay together, all i know love will save the day - corrected");
+        }
+
+        public static void Tokens(CommandArgs args)
+        {
+            var command = args.Connection.CreateCommand();
+            command.Parameters.AddWithValue("@userId", args.ChatMessage.UserId);
+
+            command.CommandText = $"SELECT total_tokens FROM ArcadeStats WHERE userID = @userId";
+            var totalTokens = command.ExecuteScalar();
+
+            args.Client.SendMessage(args.ChatMessage.Channel, $"{args.ChatMessage.DisplayName}, you have {totalTokens} tokens {BotVariables.obtoocBri}");
+        }
+
+        public static void TopPlayers(CommandArgs args)
+        {
+            string chatMessage = string.Empty;
+            int position = 1;
+
+            var command = args.Connection.CreateCommand();
+
+            command.CommandText = $"SELECT Chatters.username, ArcadeStats.total_tokens FROM Chatters INNER JOIN ArcadeStats ON Chatters.userID = ArcadeStats.userID WHERE ArcadeStats.total_tokens > 0";
+
+            // Todo: Figure out some way to possibly create a Twitch extension that I can use to show the top player leaderboard since Twitch does not allow for line breaks
+            using (SqliteDataReader reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    chatMessage += $"{position}: {reader[0]} - {reader[1]} points";
+                    position++;
+                }
+            }
+
+            args.Client.SendMessage(args.ChatMessage.Channel, chatMessage);
         }
 
         public static void Twitter(CommandArgs args)
