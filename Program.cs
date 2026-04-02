@@ -12,6 +12,8 @@ using System.Configuration;
 using ooceBot.Commands;
 using TwitchLib.Api.Core;
 using ooceBot.Timers;
+using ooceBot.Bits;
+using ooceBot.Miscellaneous;
 
 class Program
 {
@@ -101,7 +103,12 @@ class Program
         // Open new connection
         Connection.Open();
 
-        if (BotVariables.CommandsList.TryGetValue(messageParts.First().ToLower(), out BotVariables.Command command) || BotVariables.AdminCommands.TryGetValue(messageParts.First().ToLower(), out command))
+        await TestMethod.TestStuff();
+
+        // Check for bits first, then check for commands, and also make sure to ignore commands when bits are used
+        if (e.ChatMessage.Bits > 0)
+            BitMethods.HandleBitsMessage(e.ChatMessage);
+        else if (BotVariables.CommandsList.TryGetValue(messageParts.First().ToLower(), out BotVariables.Command command) || BotVariables.AdminCommands.TryGetValue(messageParts.First().ToLower(), out command))
             if (messageParts.Length == 1)
                 command(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, _twitchApi, messageParts.First(), string.Empty));
             else
