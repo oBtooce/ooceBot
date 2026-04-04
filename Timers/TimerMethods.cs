@@ -20,18 +20,17 @@ namespace ooceBot.Timers
             "Remember to file your taxes.",
             "BOO! Gotcha nerd",
             "Typing !here will take your attendance. If you report in enough times, you get rewards!",
-            "Birds are not real (!bird)",
             "Twitch Prime subscriptions are greatly appreciated!",
             "Follow this channel to support local businesses.",
             "ʕ•ᴥ•ʔ",
             new ZalgoString("AHAHAHAHAHAHAHAHAHAHAHA", FuckUpMode.Max, FuckUpPosition.All).ToString(),
             "Type !stats (username) to see someone's chess.com ratings!",
             "Check out my socials: https://linktr.ee/obtooce",
-            "Send a challenge (!join) (chess only)",
             "Song requests (!sr song-title-or-yt-link)",
             "Roll the dice (!d6 / !d20 / !d100)!",
             "A list of commands can be found here: !help",
             "Follower emotes: obtoocBri obtoocF obtoocW obtoocNice obtoocOmg",
+            "Donate 100 bits to receive a COOL PRIZE!"
         };
 
         public static async Task PostMessageInChat(TwitchClient client, TimeSpan downtime)

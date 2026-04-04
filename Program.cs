@@ -91,7 +91,7 @@ class Program
     {
         Client.JoinChannel(BotVariables.ChannelToJoin);
 
-        _ = TimerMethods.PostMessageInChat(Client, TimeSpan.FromMinutes(20));
+        _ = TimerMethods.PostMessageInChat(Client, TimeSpan.FromMinutes(10));
     }
 
     private static async void Client_OnMessageReceived(object sender, OnMessageReceivedArgs e)
