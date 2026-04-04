@@ -1,51 +1,52 @@
 ﻿using OBSWebsocketDotNet;
 using ooceBot.AudioVideo;
 using ooceBot.Authorization;
+using ooceBot.Sounds;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TwitchLib.Client.Models;
 
 namespace ooceBot.Miscellaneous
 {
     public static class TestMethod
     {
-        public static async Task TestStuff()
+        public static async Task TestStuff(ChatMessage message, HttpClient nightbotClient)
         {
             OBSWebsocket websocket = await OBSManager.ConnectToOBSWebsocket();
 
-            // The source needs to exist in the currently selected scene, so fetch the current scene name and its items
+            // Get the current volume from the API
+            double originalVolume = await VolumeControl.GetNightbotCurrentVolume(nightbotClient);
+            double volumeChange = originalVolume * 0.9;
+
+            // Keep track of the volume for the reset after the video is done
+            double updatedVolume = await VolumeControl.ReduceVolume(nightbotClient, originalVolume, volumeChange);
+
+            // The scene needs to exist in the currently selected scene, so fetch the current scene name and its items
             var currentScene = websocket.GetCurrentProgramScene();
             var sceneItems = websocket.GetSceneItemList(currentScene);
 
-            var thanksScene = sceneItems.First(item => item.SourceName == "Thanks");
-
-            websocket.SetSceneItemEnabled(currentScene, thanksScene.ItemId, true);
-            PlaySounds.PlaySound($"{ConfigurationManager.AppSettings["SoundsFolder"]}\\Super_Mario_64_Star_Get_Sound_Effect.mp3");
-
-            await Task.Delay(500);
-
-            PlaySounds.PlaySound($"{ConfigurationManager.AppSettings["SoundsFolder"]}\\SoundEffects\\Here_You_Go.mp3");
-
-            await Task.Delay(1000);
-
-            PlaySounds.PlaySound($"{ConfigurationManager.AppSettings["SoundsFolder"]}\\SoundEffects\\Reverb_Fart.mp3");
-
-            await Task.Delay(600);
-
-            var goldStarScene = sceneItems.First(item => item.SourceName == "Gold Star");
+            // Need to figure out a way to make the source name not a string because this is a bad setup
+            var thanksScene = sceneItems.First(item => item.SourceName == "Thanks!");
             var confettiScene = sceneItems.First(item => item.SourceName == "Confetti");
 
-            websocket.SetSceneItemEnabled(currentScene, goldStarScene.ItemId, true);
+            websocket.SetSceneItemEnabled(currentScene, thanksScene.ItemId, true);
+
+            await Task.Delay(2000);
+
             websocket.SetSceneItemEnabled(currentScene, confettiScene.ItemId, true);
 
-            await Task.Delay(4100);
+            websocket.MediaInputPlaybackEnded += async (sender, args) =>
+            {
+                // Reset the volume after the video is done
+                await VolumeControl.IncreaseVolume(nightbotClient, updatedVolume, volumeChange);
 
-            websocket.SetSceneItemEnabled(currentScene, thanksScene.ItemId, false);
-            websocket.SetSceneItemEnabled(currentScene, goldStarScene.ItemId, false);
-            websocket.SetSceneItemEnabled(currentScene, confettiScene.ItemId, false);
+                websocket.SetSceneItemEnabled(currentScene, thanksScene.ItemId, false);
+                websocket.SetSceneItemEnabled(currentScene, confettiScene.ItemId, false);
+            };
         }
     }
 }
