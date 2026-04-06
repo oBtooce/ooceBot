@@ -103,11 +103,11 @@ class Program
         // Open new connection
         Connection.Open();
 
-        //await TestMethod.TestStuff(e.ChatMessage, NightbotSongRequestClient);
+        await TestMethod.TestStuff(e.ChatMessage, NightbotSongRequestClient);
 
         // Check for bits first, then check for commands, and also make sure to ignore commands when bits are used
         if (e.ChatMessage.Bits > 0)
-            BitMethods.HandleBitsMessage(e.ChatMessage, NightbotSongRequestClient);
+            BitMethods.HandleBitsMessage(Client, e.ChatMessage, NightbotSongRequestClient);
         else if (BotVariables.CommandsList.TryGetValue(messageParts.First().ToLower(), out BotVariables.Command command) || BotVariables.AdminCommands.TryGetValue(messageParts.First().ToLower(), out command))
             if (messageParts.Length == 1)
                 command(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, _twitchApi, messageParts.First(), string.Empty));

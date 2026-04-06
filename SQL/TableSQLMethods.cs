@@ -68,6 +68,10 @@ namespace ooceBot.SQL
             ";
 
             command.ExecuteNonQuery();
+
+            // Attendance is reset for the day
+            command.CommandText = "UPDATE ChatterAttendance SET is_present = 0";
+            command.ExecuteNonQuery();
         }
 
         /// <summary>

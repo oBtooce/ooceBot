@@ -103,7 +103,7 @@ namespace ooceBot.Miscellaneous
         {
             var command = connection.CreateCommand();
             command.Parameters.AddWithValue("@userId", userId);
-            command.CommandText = "INSERT OR IGNORE INTO ArcadeStats (userID) VALUES (@userId)";
+            command.CommandText = "INSERT OR IGNORE INTO ArcadeStats (userID, times_wagered, total_tokens, largest_wager, high_score, winning_streak, longest_winning_streak) VALUES (@userId, 0, 0, 0, 0, 0, 0)";
 
             command.ExecuteNonQuery();
         }

@@ -92,6 +92,7 @@ namespace ooceBot
             { "!rq", CommandMethods.RandomQuote },
             { "!redeem", CommandMethods.Redeem },
             { "!rewards", CommandMethods.Rewards },
+            { "!rule", CommandMethods.Rule },
             { "!salute", CommandMethods.Salute },
             { "!schedule", CommandMethods.Schedule },
             { "!sorrow", CommandMethods.Sorrow },

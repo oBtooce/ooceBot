@@ -60,6 +60,7 @@ namespace ooceBot.Commands
         public static void BuyIn(CommandArgs args)
         {
             //Add new user or ignore if ID is already present
+            DBQueryMethods.VerifyExistenceInChattersTable(args.Connection, args.ChatMessage);
             ArcadeMethods.SetupPlayer(args.Connection, args.ChatMessage.UserId);
 
             // Check balances for player and provide tokens if balance is empty
@@ -335,6 +336,11 @@ namespace ooceBot.Commands
         public static void Rewards(CommandArgs args)
         {
             args.Client.SendMessage(args.ChatMessage.Channel, $"Check out all channel point rewards here: {ConfigurationManager.AppSettings["GitHubGistUrl"]}");
+        }
+
+        public static void Rule(CommandArgs args)
+        {
+            args.Client.SendMessage(args.ChatMessage.Channel, "Donating 250 bits allows you to make a \"rule\" that oBtooce has to follow for 5 minutes. Any rules deemed to be \"unfit\" will be ignored, so make it count!");
         }
 
         public static async void Salute(CommandArgs args)

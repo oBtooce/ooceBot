@@ -1,8 +1,10 @@
-﻿using OBSWebsocketDotNet;
+﻿using Newtonsoft.Json.Linq;
+using OBSWebsocketDotNet;
 using ooceBot.AudioVideo;
 using ooceBot.Authorization;
 using ooceBot.Sounds;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
@@ -10,21 +12,42 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading.Tasks;
 using TwitchLib.Api.Helix.Models.Soundtrack;
+using TwitchLib.Client;
 using TwitchLib.Client.Models;
 
 namespace ooceBot.Bits
 {
     public static class BitMethods
     {
-        public static async void HandleBitsMessage(ChatMessage message, HttpClient nightbotClient)
+        private static ConcurrentQueue<ChatMessage> DecreeQueue = new ConcurrentQueue<ChatMessage>();
+
+        private static bool IsDecreeActive = false;
+
+        private static SemaphoreSlim DecreeLock = new SemaphoreSlim(1, 1);
+
+        private static TwitchClient? Client = null;
+
+        /// <summary>
+        /// Method for handling bit donations. Certain bot amounts trigger special events.
+        /// </summary>
+        /// <param name="client">A TwitchClient instance</param>
+        /// <param name="message">A ChatMessage object from the Twitch API</param>
+        /// <param name="nightbotClient">A Nightbot client instance</param>
+        public static async void HandleBitsMessage(TwitchClient client, ChatMessage message, HttpClient nightbotClient)
         {
             switch (message.Bits)
             {
                 case 100:
-                    GiveOutAGoldStar(message, nightbotClient);
+                    GiveOutAGoldStar(nightbotClient);
                     break;
                 case 250:
-                    //AssignKingStatus(message);
+                    DecreeQueue.Enqueue(message);
+
+                    // Set up the TwitchClient object for use later
+                    if (Client == null)
+                        Client = client;
+
+                    await StartNextRoyalDecree();
                     break;
                 case 500:
                     break;
@@ -37,7 +60,11 @@ namespace ooceBot.Bits
             }
         }
 
-        private static async void GiveOutAGoldStar(ChatMessage message, HttpClient nightbotClient)
+        /// <summary>
+        /// A very cool star is handed out to the goodest chatter for a single dollar! Wow!
+        /// </summary>
+        /// <param name="nightbotClient">A Nightbot client instance</param>
+        private static async void GiveOutAGoldStar(HttpClient nightbotClient)
         {
             OBSWebsocket websocket = await OBSManager.ConnectToOBSWebsocket();
 
@@ -48,7 +75,7 @@ namespace ooceBot.Bits
             // Keep track of the volume for the reset after the video is done
             double updatedVolume = await VolumeControl.ReduceVolume(nightbotClient, originalVolume, volumeChange);
 
-            // The scene needs to exist in the currently selected scene, so fetch the current scene name and its items
+            // The source needs to exist in the currently selected scene, so fetch the current scene name and its items
             var currentScene = websocket.GetCurrentProgramScene();
             var sceneItems = websocket.GetSceneItemList(currentScene);
 
@@ -70,6 +97,85 @@ namespace ooceBot.Bits
                 websocket.SetSceneItemEnabled(currentScene, thanksScene.ItemId, false);
                 websocket.SetSceneItemEnabled(currentScene, confettiScene.ItemId, false);
             };
+        }
+
+        /// <summary>
+        /// Give a bits donator the power to create a "rule" that the streamer must follow (within reason, of course).
+        /// Each donation adds the message info to a queue and each message is handled in order.
+        /// </summary>
+        private static async Task StartNextRoyalDecree()
+        {
+            OBSWebsocket websocket = await OBSManager.ConnectToOBSWebsocket();
+
+            // Get the lock to determine enable/disable of the queue
+            await DecreeLock.WaitAsync();
+
+            try
+            {
+                // Check for other running decrees and early exit if yes
+                if (IsDecreeActive)
+                    return;
+
+                // Pop off the first value in the queue and use this for decree determination
+                if (DecreeQueue.TryDequeue(out ChatMessage nextInLine))
+                {
+                    IsDecreeActive = true;
+                    _ = RunDecreeAsync(nextInLine, websocket);
+                }
+                else
+                {
+                    var settingsObject = new JObject();
+                    settingsObject["text"] = "Placeholder";
+
+                    websocket.SetInputSettings("Rule Text", settingsObject);
+                }
+            }
+            finally
+            {
+                DecreeLock.Release();
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message">A ChatMessage object from the Twitch API</param>
+        /// <param name="websocket">An OBS websocket instance</param>
+        /// <returns></returns>
+        private static async Task RunDecreeAsync(ChatMessage message, OBSWebsocket websocket)
+        {
+            try
+            {
+                // Announce the decree to chat
+                Client.SendMessage(message.Channel, $"[NEW RULE] {message.Message.Replace("Cheer250", "")}");
+
+                var settingsObject = new JObject();
+                settingsObject["text"] = message.Message;
+
+                websocket.SetInputSettings("Rule Text", settingsObject);
+
+                // Non-blocking async delay — yields the thread instead of spinning
+                await Task.Delay(TimeSpan.FromMinutes(5));
+
+                Client.SendMessage(message.Channel, $"[RULE EXPIRED]");
+            }
+            finally
+            {
+                // Always release the active flag, even if something throws
+                await DecreeLock.WaitAsync();
+
+                try
+                {
+                    IsDecreeActive = false;
+                }
+                finally
+                {
+                    DecreeLock.Release();
+                }
+
+                // Automatically start the next decree if one is waiting
+                await StartNextRoyalDecree();
+            }
         }
     }
 }
