@@ -37,41 +37,11 @@ class Program
         //await NighbotOAuthManager.SetNightbotOAuthToken();
         await TwitchOAuthManager.SetTwitchOAuthToken();
 
-        // Set up Nightbot song requests client
-        NightbotSongRequestClient = new HttpClient()
-        {
-            BaseAddress = new Uri(ConfigurationManager.AppSettings["NightbotAPIRequestUri"]!)
-        };
+        NightbotSongRequestClient = Startup.SetupNightbotClient();
+        Client = Startup.SetupTwitchClient();
 
-        NightbotSongRequestClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", ConfigurationManager.AppSettings["NightbotOAuthToken"]);
-
-        // Set up client
-        ConnectionCredentials credentials = new ConnectionCredentials(BotVariables.BotUsername, BotVariables.TwitchOAuthToken);
-        var clientOptions = new ClientOptions
-        {
-            MessagesAllowedInPeriod = 750,
-            ThrottlingPeriod = TimeSpan.FromSeconds(30)
-        };
-
-        var customClient = new WebSocketClient(clientOptions);
-        Client = new TwitchClient(customClient);
-        Client.Initialize(credentials);
-
-        // Get the broadcaster ID for later use
-        var users = await _twitchApi.Helix.Users.GetUsersAsync(logins: new List<string> { BotVariables.ChannelToJoin });
-        BotVariables.BroadcasterID = users.Users[0].Id;
-
-        // Get all currently enabled custom rewards
-        var customRewards = await _twitchApi.Helix.ChannelPoints.GetCustomRewardAsync(BotVariables.BroadcasterID);
-
-        // Add each value to the dictionary
-        var redeemData = customRewards.Data.Where(reward => reward.IsEnabled).OrderBy(reward => reward.Cost).ToList();
-
-        // Setting start value to 1 to make it easier for user selection
-        for (int i = 0; i < redeemData.Count; i++)
-            BotVariables.CustomRewards.Add(i + 1, redeemData[i]);
-
-        await GistManager.UpdateRewardsGist(BotVariables.CustomRewards);
+        // Set up all variables that require Twitch Helix
+        Startup.UpdateHelixVariables(_twitchApi);
 
         Client.OnConnected += Client_OnConnected;
         Client.OnMessageReceived += Client_OnMessageReceived;

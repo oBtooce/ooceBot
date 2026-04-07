@@ -43,7 +43,7 @@ namespace ooceBot.Attendance
             command.Parameters.AddWithValue("@pointValue", BotVariables.ATTENDANCE_POINT_VALUE);
 
             string today = DateTime.UtcNow.ToString("yyyy-MM-dd");
-            command.Parameters.AddWithValue("@today", today);
+            command.Parameters.AddWithValue("@streamStartTime", BotVariables.StreamStartTime);
 
             var chatterUserID = args.ChatMessage.UserId;
             var chatterDisplayName = args.ChatMessage.DisplayName;
@@ -62,7 +62,7 @@ namespace ooceBot.Attendance
                     long isPresent = reader.GetInt64(0);
                     string lastPresentDate = reader.IsDBNull(1) ? null : reader.GetString(1);
 
-                    alreadyPresent = (isPresent == 1 || lastPresentDate == today);
+                    alreadyPresent = (isPresent == 1 || (lastPresentDate == BotVariables.StreamStartTime || lastPresentDate == today));
                 }
             }
 
@@ -75,9 +75,9 @@ namespace ooceBot.Attendance
 
             // Create a new attendance record or update an existing one
             command.CommandText = $@"
-                    INSERT INTO ChatterAttendance (userID, attendance_count, total_attendance, is_present, last_present_date) VALUES (@userId, 1, 1, 1, @today)
+                    INSERT INTO ChatterAttendance (userID, attendance_count, total_attendance, is_present, last_present_date) VALUES (@userId, 1, 1, 1, @streamStartTime)
                     ON CONFLICT(userID)
-                    DO UPDATE SET attendance_count = attendance_count + 1, total_attendance = total_attendance + 1, is_present = 1, last_present_date = @today
+                    DO UPDATE SET attendance_count = attendance_count + 1, total_attendance = total_attendance + 1, is_present = 1, last_present_date = @streamStartTime
                 ";
 
             command.ExecuteNonQuery();

@@ -33,6 +33,8 @@ namespace ooceBot
 
         public static Dictionary<int, CustomReward> CustomRewards { get; set; } = new Dictionary<int, CustomReward>();
 
+        public static string StreamStartTime { get; set; } = string.Empty;
+
         #endregion
 
         #region WebSocket Variables

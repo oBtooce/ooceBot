@@ -52,7 +52,7 @@ namespace ooceBot.Bits
                     await StartNextRoyalDecree();
                     break;
                 case 500:
-
+                    ChooseNextStream(message);
                     break;
                 default:
                     break;
@@ -182,6 +182,11 @@ namespace ooceBot.Bits
                 // Automatically start the next decree if one is waiting
                 await StartNextRoyalDecree();
             }
+        }
+
+        private static void ChooseNextStream(ChatMessage message)
+        {
+            Client.SendMessage(BotVariables.ChannelToJoin, $"{message.DisplayName}, you have been given the power of -----CHOOSER OF CONTENT----- {BotVariables.obtoocBri} What will the next stream be?");
         }
     }
 }

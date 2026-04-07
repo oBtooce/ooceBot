@@ -282,7 +282,7 @@ namespace ooceBot.Commands
 
         public static void Rule(CommandArgs args)
         {
-            args.Client.SendMessage(args.ChatMessage.Channel, "Donating 250 bits allows you to make a \"rule\" that oBtooce has to follow for 5 minutes. Any rules deemed to be \"unfit\" will be ignored, so make it count!");
+            args.Client.SendMessage(args.ChatMessage.Channel, $"Donating 250 bits allows you to make a \"rule\" that oBtooce has to follow for 5 minutes. Any rules deemed to be \"unfit\" will be ignored, so make it count {BotVariables.obtoocBri}");
         }
 
         public static async void Salute(CommandArgs args)
@@ -358,7 +358,7 @@ namespace ooceBot.Commands
 
         public static void Store(CommandArgs args)
         {
-            //
+            args.Client.SendMessage(args.ChatMessage.Channel, $"Nothing at the store yet. Stay tuned {BotVariables.obtoocBri}");
         }
 
         public static void Tarf(CommandArgs args)
