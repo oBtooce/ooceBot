@@ -49,6 +49,11 @@ namespace ooceBot
         public static int DEFAULT_NIGHTBOT_VOLUME = 60;
 
         public static int ATTENDANCE_POINT_VALUE = 2000;
+
+        public static HashSet<string> BANNED_WORDS = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "nigger", "nigga", "faggot", "fag", "chink", "gook", "retard", "retarded", "kike", "tranny", "troon", "spic"
+        };
         #endregion
 
         #region Application Credentials
@@ -70,8 +75,7 @@ namespace ooceBot
         };
 
         public static Dictionary<string, Command> CommandsList { get; set; } = new Dictionary<string, Command>()
-        {
-            { "!", CommandMethods.Exclaim },
+        {            
             { "!addquote", CommandMethods.AddQuote },
             { "!audit", CommandMethods.Audit },
             { "!boner", CommandMethods.Boner },
@@ -107,8 +111,7 @@ namespace ooceBot
             { "!twt", CommandMethods.Twitter },
             { "!vid", CommandMethods.Vid },
             { "!youtube", CommandMethods.YouTube },
-            { "!yt", CommandMethods.YouTube },
-            //{ "based", CommandMethods.Based }
+            { "!yt", CommandMethods.YouTube }
         };
 
         public static Dictionary<string, Command> VideoCommands = new Dictionary<string, Command>()
@@ -120,6 +123,7 @@ namespace ooceBot
 
         public static Dictionary<string, Command> WordCommands = new Dictionary<string, Command>()
         {
+            { "!", CommandMethods.Exclaim },
             { "f", WordCommandMethods.F },
             { "lol", WordCommandMethods.Lol },
             { "nice", WordCommandMethods.Nice },
@@ -132,22 +136,23 @@ namespace ooceBot
             { "addquote", "Adds a quote that can be accessed in the future." },
             { "audit", "Checks the account age of a specified chess.com account." },
             { "boner", "Special command dedicated to a member of the community. Try it out!" },
-            { "buyin", "Get started with the token system." },
+            { "buyin", "Get started with the arcade token system." },
             { "croissant", "Learn all about the world of \"one croissant\"!" },
-            { "dc", "Links to the Discord." },
-            { "discord", "Links to the Discord." },
+            { "dc", "Links to the community Discord." },
+            { "discord", "Links to the community Discord." },
             { "emotes", "Displays a list of follower emotes." },
             { "finecheddar", "Learn all about the world of \"fine cheddar\"!" },
             { "groove", "Plays a random sound." },
             { "help", "What are you doing... obtoocOmg" },
             { "here", "Tracks attendance in stream. Builds up to a reward at 10 uses!" },
             { "jacob", "Special command dedicated to a member of the community. Try it out!" },
-            { "lobster", "DJ Khaled shows up in this one, bro." },
+            { "lobster", "DJ Khaled shows up in this one, bro. (VIP/sub video)" },
             { "lurk", "Tells people that you will be lurking for now." },
             { "play", "Try the token system!" },
-            { "quote", "Displays a random quote from history." },
+            { "quote", "Displays a specified quote from history." },
             { "randomquote", "Displays a random quote from history." },
             { "rq", "Displays a random quote from history." },
+            { "rule", "Describes the process for creating a \"royal decree\"." },
             { "salute", "Song plays!" },
             { "schedule", "Displays the current stream schedule." },
             { "sorrow", "Song plays!" },
@@ -155,11 +160,13 @@ namespace ooceBot
             { "stats", "Checks rapid, blitz, and bullet statistics for the specified chess.com account." },
             { "steam", "Displays a link to oBtooce's Steam page." },
             { "tarf", "Special command dedicated to a member of the community. Try it out!" },
+            { "tokens", "Displays your current token total from arcade games." },
+            { "top10", "Displays the top 10 chatters in terms of total tokens." },
             { "twitter", "Displays a link to oBtooce's Twitter page." },
             { "twt", "Displays a link to oBtooce's Twitter page." },
             { "vid", "Displays a link to oBtooce's latest YouTube video." },
-            { "who", "Pete Weber is the man." },
-            { "wtf", "Seriously though, what the hell, man?" },
+            { "who", "Pete Weber is the man. (VIP/sub video)" },
+            { "wtf", "Seriously though, what the hell, man? (VIP/sub video)" },
             { "youtube", "Displays a link to oBtooce's YouTube page." },
             { "yt", "Displays a link to oBtooce's YouTube page." }
         };

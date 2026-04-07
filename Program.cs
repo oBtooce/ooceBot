@@ -103,7 +103,7 @@ class Program
         // Open new connection
         Connection.Open();
 
-        await TestMethod.TestStuff(e.ChatMessage, NightbotSongRequestClient);
+        //await TestMethod.TestStuff(e.ChatMessage, NightbotSongRequestClient);
 
         // Check for bits first, then check for commands, and also make sure to ignore commands when bits are used
         if (e.ChatMessage.Bits > 0)

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Data.Sqlite;
 using OBSWebsocketDotNet;
+using ooceBot.Attendance;
 using ooceBot.AudioVideo;
 using ooceBot.Authorization;
 using ooceBot.Functionality;
@@ -83,6 +84,7 @@ namespace ooceBot.Commands
         {
             args.Client.SendMessage(args.ChatMessage.Channel, $"Follower emotes: {BotVariables.obtoocBri} {BotVariables.obtoocF} {BotVariables.obtoocW} {BotVariables.obtoocNice} {BotVariables.obtoocOmg}");
         }
+
         public static void Exclaim(CommandArgs args)
         {
             args.Client.SendMessage(args.ChatMessage.Channel, $"{BotVariables.obtoocBri} {BotVariables.obtoocBri} {BotVariables.obtoocBri} {BotVariables.obtoocBri} {BotVariables.obtoocBri}");
@@ -145,70 +147,10 @@ namespace ooceBot.Commands
 
         public static void Here(CommandArgs args)
         {
-            var command = args.Connection.CreateCommand();
-            command.Parameters.AddWithValue("@userId", args.ChatMessage.UserId);
-            command.Parameters.AddWithValue("@pointValue", BotVariables.ATTENDANCE_POINT_VALUE);
-
-            string today = DateTime.UtcNow.ToString("yyyy-MM-dd");
-            command.Parameters.AddWithValue("@today", today);
-
-            var chatterUserID = args.ChatMessage.UserId;
-            var chatterDisplayName = args.ChatMessage.DisplayName;
-
-            DBQueryMethods.VerifyExistenceInChattersTable(args.Connection, args.ChatMessage);
-
-            // Check to see if user has declared their presence today and in the stream (accounts for streams that go past the midnight mark)
-            command.CommandText = "SELECT is_present, last_present_date FROM ChatterAttendance WHERE userID = @userId";
-
-            bool alreadyPresent = false;
-
-            using (var reader = command.ExecuteReader())
-            {
-                if (reader.Read())
-                {
-                    long isPresent = reader.GetInt64(0);
-                    string lastPresentDate = reader.IsDBNull(1) ? null : reader.GetString(1);
-
-                    alreadyPresent = (isPresent == 1 || lastPresentDate == today);
-                }
-            }
-
-            // If attendance was already taken, then prevent it from happening
-            if (alreadyPresent)
-            {
-                args.Client.SendMessage(args.ChatMessage.Channel, $"Your attendance has already been taken. Check in next time {BotVariables.obtoocBri}");
-                return;
-            }
-
-            // Create a new attendance record or update an existing one
-            command.CommandText = $@"
-                INSERT INTO ChatterAttendance (userID, attendance_count, total_attendance, is_present, last_present_date) VALUES (@userId, 1, 1, 1, @today)
-                ON CONFLICT(userID)
-                DO UPDATE SET attendance_count = attendance_count + 1, total_attendance = total_attendance + 1, is_present = 1, last_present_date = @today
-            ";
-
-            command.ExecuteNonQuery();
-
-            // Get the relevant attendance total from the DB
-            command.CommandText = $"SELECT attendance_count FROM ChatterAttendance WHERE userID = @userId";
-            int attendanceCount = Convert.ToInt32(command.ExecuteScalar());
-
-            string message;
-            int daysInClass = attendanceCount % 10;
-
-            // When reaching 10 days, reward with points
-            if (daysInClass == 0)
-            {
-                message = $"{BotVariables.obtoocW} {BotVariables.obtoocW} Congratulations! {BotVariables.obtoocW} {BotVariables.obtoocW}    {chatterDisplayName}, to reward you for your regular attendance, you get {BotVariables.ATTENDANCE_POINT_VALUE} \"points\" to spend on channel point redemptions {BotVariables.obtoocBri}";
-
-                command.CommandText = $"UPDATE ChatterAttendance SET attendance_count = 0, points_for_redemption = points_for_redemption + @pointValue WHERE userID = @userId";
-                command.ExecuteNonQuery();
-            }
+            if (args.CommandQuantifier == string.Empty)
+                AttendanceMethods.TakeAttendance(args);
             else
-                message = $"{chatterDisplayName}, your attendance has been recorded. You have {daysInClass} {(daysInClass == 1 ? "day" : "days")} on record. Let's see what happens when you reach 10 days {BotVariables.obtoocBri}";
-
-            // Let 'em know
-            args.Client.SendMessage(args.ChatMessage.Channel, message);
+                AttendanceMethods.ProvideAttendanceInfo(args);
         }
 
         public static void Jacob(CommandArgs args)

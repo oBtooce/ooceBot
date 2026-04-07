@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using OBSWebsocketDotNet;
+using OBSWebsocketDotNet.Types;
 using ooceBot.AudioVideo;
 using ooceBot.Authorization;
 using ooceBot.Sounds;
@@ -14,6 +15,7 @@ using System.Threading.Tasks;
 using TwitchLib.Api.Helix.Models.Soundtrack;
 using TwitchLib.Client;
 using TwitchLib.Client.Models;
+using TwitchLib.Communication.Interfaces;
 
 namespace ooceBot.Bits
 {
@@ -50,10 +52,7 @@ namespace ooceBot.Bits
                     await StartNextRoyalDecree();
                     break;
                 case 500:
-                    break;
-                case 1000:
-                    break;
-                case 5000:
+
                     break;
                 default:
                     break;
@@ -119,8 +118,15 @@ namespace ooceBot.Bits
                 // Pop off the first value in the queue and use this for decree determination
                 if (DecreeQueue.TryDequeue(out ChatMessage nextInLine))
                 {
-                    IsDecreeActive = true;
-                    _ = RunDecreeAsync(nextInLine, websocket);
+                    // Check for profanity and deal with it accordingly
+                    if (nextInLine.Message.Split(' ').Any(word => BotVariables.BANNED_WORDS.Contains(word)))
+                        // Time out the bad apple
+                        Client.SendMessage(BotVariables.ChannelToJoin, $"/timeout {nextInLine.Username} 600 Using profanity is not tolerated. Take a break, yeah?");
+                    else
+                    {
+                        IsDecreeActive = true;
+                        _ = RunDecreeAsync(nextInLine, websocket);
+                    }
                 }
                 else
                 {
@@ -137,7 +143,7 @@ namespace ooceBot.Bits
         }
 
         /// <summary>
-        /// 
+        /// Creates the new rule and places it on screen for all to see for 5 minutes
         /// </summary>
         /// <param name="message">A ChatMessage object from the Twitch API</param>
         /// <param name="websocket">An OBS websocket instance</param>
