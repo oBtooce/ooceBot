@@ -21,6 +21,8 @@ namespace ooceBot.SQL
             InitializeWageringTable(connection);
             InitializeCommandUsageTable(connection);
 
+            InitializeMiscellaneousTable(connection);
+
             // Close the connection to the DB
             connection.Close();
         }
@@ -119,6 +121,27 @@ namespace ooceBot.SQL
 
             // Reset command usage counts back to default
             command.CommandText = "UPDATE CommandUsage SET usage_count = 0";
+            command.ExecuteNonQuery();
+        }
+
+        /// <summary>
+        /// Creates a table that is used to handle miscellaneous values such as general counters.
+        /// </summary>
+        /// <param name="connection">The SQLite connection required for DB interaction</param>
+        public static void InitializeMiscellaneousTable(SqliteConnection connection)
+        {
+            var command = connection.CreateCommand();
+
+            // Table creation
+            command.CommandText = @"
+                CREATE TABLE IF NOT EXISTS Miscellaneous (
+                    id INTEGER PRIMARY KEY CHECK (id = 1),
+                    bird_counter INTEGER NOT NULL DEFAULT 0
+                );
+
+                INSERT OR IGNORE INTO Miscellaneous (id, bird_counter) VALUES (1, 0);
+            ";
+
             command.ExecuteNonQuery();
         }
     }

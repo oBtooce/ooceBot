@@ -51,7 +51,18 @@ namespace ooceBot.Commands
  / /_/ / /_/ (__  )  __/ /_/ /  
 /_____/\__,_/____/\___/\__,_/   
                                 ");
-        }        
+        }
+
+        public static void Bird(CommandArgs args)
+        {
+            var command = args.Connection.CreateCommand();
+
+            command.CommandText = $"UPDATE Miscellaneous SET bird_counter = bird_counter + 1 RETURNING bird_counter";
+
+            int birdCount = Convert.ToInt32(command.ExecuteScalar());
+
+            args.Client.SendMessage(args.ChatMessage.Channel, $"The Bird Opening has been used {birdCount} {(birdCount == 1 ? "time" : "times")} {BotVariables.obtoocBri}");
+        }
 
         public static void Boner(CommandArgs args)
         {

@@ -80,6 +80,7 @@ namespace ooceBot
         {            
             { "!addquote", CommandMethods.AddQuote },
             { "!audit", CommandMethods.Audit },
+            { "!bird", CommandMethods.Bird },
             { "!boner", CommandMethods.Boner },
             { "!buyin", CommandMethods.BuyIn },
             { "!croissant", CommandMethods.Croissant },
@@ -137,6 +138,7 @@ namespace ooceBot
         {
             { "addquote", "Adds a quote that can be accessed in the future." },
             { "audit", "Checks the account age of a specified chess.com account." },
+            { "bird", "Shows how many times the Bird Opening has been played on stream." },
             { "boner", "Special command dedicated to a member of the community. Try it out!" },
             { "buyin", "Get started with the arcade token system." },
             { "croissant", "Learn all about the world of \"one croissant\"!" },
