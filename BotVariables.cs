@@ -21,6 +21,7 @@ namespace ooceBot
         public static string obtoocW { get; } = "obtoocW";
 
         #endregion
+
         #region Twitch Bot Variables
         public static string BroadcasterID { get; set; } = "";
 
@@ -41,21 +42,44 @@ namespace ooceBot
         public static Uri WebSocketUri { get; } = new Uri("wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=30");
         #endregion
 
-        #region Constants
-        public static char[] PIECE_NOTATION = new char[6] { 'B', 'K', 'N', 'Q', 'R', ' ' };
-        public static char[] FILE_NOTATION = new char[8] { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
-        public static int[] RANK_NOTATION = new int[8] { 1, 2, 3, 4, 5, 6, 7, 8 };
+        #region General Variables and Constants
+        public static readonly char[] PIECE_NOTATION = new char[6] { 'B', 'K', 'N', 'Q', 'R', ' ' };
+        public static readonly char[] FILE_NOTATION = new char[8] { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
+        public static readonly int[] RANK_NOTATION = new int[8] { 1, 2, 3, 4, 5, 6, 7, 8 };
 
-        public static int DEFAULT_BUYIN = 100;
+        public const int DEFAULT_BUYIN = 100;
 
-        public static int DEFAULT_NIGHTBOT_VOLUME = 60;
+        public const int DEFAULT_NIGHTBOT_VOLUME = 60;
 
-        public static int ATTENDANCE_POINT_VALUE = 2000;
+        public const int ATTENDANCE_POINT_VALUE = 2000;
 
-        public static HashSet<string> BANNED_WORDS = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        public static readonly HashSet<string> BANNED_WORDS = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "nigger", "nigga", "faggot", "fag", "chink", "gook", "retard", "retarded", "kike", "tranny", "troon", "spic"
         };
+
+        public static bool IsYelling = false;
+
+        public static List<string> EmoteWords = new List<string>()
+        {
+            obtoocBri, obtoocF, obtoocNice, obtoocOmg, obtoocW
+        };
+        #endregion
+
+        #region Links
+
+        public static string DiscordLink = "https://discord.gg/5RTxTFurGF";
+
+        public static string LatestYTVideo = "https://youtu.be/STmFRwBFvqc";
+
+        public static string SpotifyPage = "https://open.spotify.com/user/obtoose";
+
+        public static string SteamPage = "https://steamcommunity.com/id/obtooce/";
+
+        public static string TwitterPage = "https://twitter.com/oBtuuse";
+
+        public static string YouTubeChannel = "https://www.youtube.com/@obtoocevids";
+
         #endregion
 
         #region Application Credentials
@@ -92,6 +116,7 @@ namespace ooceBot
             { "!help", CommandMethods.Help },
             { "!here", CommandMethods.Here },
             { "!jacob", CommandMethods.Jacob },
+            { "!loud", CommandMethods.Loud },
             { "!lurk", CommandMethods.Lurk },
             { "!play", CommandMethods.Play },
             { "!quote", CommandMethods.Quote },

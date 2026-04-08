@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ooceBot.Functionality;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,27 +11,37 @@ namespace ooceBot.Commands
     {
         public static void F(CommandArgs args)
         {
-            args.Client.SendMessage(args.ChatMessage.Channel, "obtoocF obtoocF obtoocF obtoocF obtoocF");
+            string message = $"{BotVariables.obtoocF} {BotVariables.obtoocF} {BotVariables.obtoocF} {BotVariables.obtoocF} {BotVariables.obtoocF}";
+
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
         public static void Lol(CommandArgs args)
         {
-            args.Client.SendMessage(args.ChatMessage.Channel, $"Lmao even");
+            string message = $"Lmao even";
+
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
         public static void Nice(CommandArgs args)
         {
-            args.Client.SendMessage(args.ChatMessage.Channel, "obtoocNice obtoocNice obtoocNice obtoocNice obtoocNice");
+            string message = $"{BotVariables.obtoocNice} {BotVariables.obtoocNice} {BotVariables.obtoocNice} {BotVariables.obtoocNice} {BotVariables.obtoocNice}";
+
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
         public static void W(CommandArgs args)
         {
-            args.Client.SendMessage(args.ChatMessage.Channel, "obtoocW obtoocW obtoocW obtoocW obtoocW");
+            string message = $"{BotVariables.obtoocW} {BotVariables.obtoocW} {BotVariables.obtoocW} {BotVariables.obtoocW} {BotVariables.obtoocW}";
+
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
         public static void Wow(CommandArgs args)
         {
-            args.Client.SendMessage(args.ChatMessage.Channel, "Hey, that's wild");
+            string message = "Hey, that's wild";
+
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
     }
 }

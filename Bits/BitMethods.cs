@@ -3,6 +3,7 @@ using OBSWebsocketDotNet;
 using OBSWebsocketDotNet.Types;
 using ooceBot.AudioVideo;
 using ooceBot.Authorization;
+using ooceBot.Functionality;
 using ooceBot.Sounds;
 using System;
 using System.Collections.Concurrent;
@@ -120,8 +121,12 @@ namespace ooceBot.Bits
                 {
                     // Check for profanity and deal with it accordingly
                     if (nextInLine.Message.Split(' ').Any(word => BotVariables.BANNED_WORDS.Contains(word)))
+                    {
                         // Time out the bad apple
-                        Client.SendMessage(BotVariables.ChannelToJoin, $"/timeout {nextInLine.Username} 600 Using profanity is not tolerated. Take a break, yeah?");
+                        string message = $"/timeout {nextInLine.Username} 600 Using profanity is not tolerated. Take a break, yeah?";
+
+                        Client.SendMessage(BotVariables.ChannelToJoin, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+                    }
                     else
                     {
                         IsDecreeActive = true;
@@ -153,7 +158,9 @@ namespace ooceBot.Bits
             try
             {
                 // Announce the decree to chat
-                Client.SendMessage(message.Channel, $"[NEW RULE] {message.Message.Replace("Cheer250", "")}");
+                string outputMessage = $"[NEW RULE] {message.Message.Replace("Cheer250", "")}";
+
+                Client.SendMessage(BotVariables.ChannelToJoin, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(outputMessage) : outputMessage);
 
                 var settingsObject = new JObject();
                 settingsObject["text"] = message.Message;
@@ -186,7 +193,9 @@ namespace ooceBot.Bits
 
         private static void ChooseNextStream(ChatMessage message)
         {
-            Client.SendMessage(BotVariables.ChannelToJoin, $"{message.DisplayName}, you have been given the power of -----CHOOSER OF CONTENT----- {BotVariables.obtoocBri} What will the next stream be?");
+            string outputMessage = $"{message.DisplayName}, you have been given the power of -----CHOOSER OF CONTENT----- {BotVariables.obtoocBri} What will the next stream be?";
+
+            Client.SendMessage(BotVariables.ChannelToJoin, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(outputMessage) : outputMessage);
         }
     }
 }

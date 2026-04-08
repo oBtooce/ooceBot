@@ -1,4 +1,5 @@
 ﻿using ooceBot.Commands;
+using ooceBot.Functionality;
 using ooceBot.SQL;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,8 @@ namespace ooceBot.Attendance
         {
             var command = args.Connection.CreateCommand();
 
+            string message;
+
             switch (args.CommandQuantifier)
             {
                 case "points":
@@ -21,23 +24,31 @@ namespace ooceBot.Attendance
 
                     command.CommandText = $"SELECT points_for_redemption FROM ChatterAttendance WHERE userID = @userId";
 
-                    args.Client.SendMessage(BotVariables.ChannelToJoin, $"{args.ChatMessage.DisplayName}, you currently have {Convert.ToInt32(command.ExecuteScalar())} points to use on channel redemptions. Attend more streams to earn more points {BotVariables.obtoocBri}");
+                    message = $"{args.ChatMessage.DisplayName}, you currently have {Convert.ToInt32(command.ExecuteScalar())} points to use on channel redemptions. Attend more streams to earn more points {BotVariables.obtoocBri}";
+
+                    args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
                     break;
                 case "total":
                     command.Parameters.AddWithValue("@userId", args.ChatMessage.UserId);
 
                     command.CommandText = $"SELECT total_attendance FROM ChatterAttendance WHERE userID = @userId";
                     
-                    args.Client.SendMessage(BotVariables.ChannelToJoin, $"{args.ChatMessage.DisplayName}, you've attended {Convert.ToInt32(command.ExecuteScalar())} streams. You rock {BotVariables.obtoocBri}");
+                    message = $"{args.ChatMessage.DisplayName}, you've attended {Convert.ToInt32(command.ExecuteScalar())} streams. You rock {BotVariables.obtoocBri}";
+
+                    args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
                     break;                
                 default:
-                    args.Client.SendMessage(BotVariables.ChannelToJoin, $"If you would like more attendance information, try the following available commands: !here total, !here points");
+                    message = $"If you would like more attendance information, try the following available commands: !here total, !here points";
+
+                    args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
                     break;
             }
         }
 
         public static void TakeAttendance(CommandArgs args)
         {
+            string message;
+
             var command = args.Connection.CreateCommand();
             command.Parameters.AddWithValue("@userId", args.ChatMessage.UserId);
             command.Parameters.AddWithValue("@pointValue", BotVariables.ATTENDANCE_POINT_VALUE);
@@ -69,7 +80,9 @@ namespace ooceBot.Attendance
             // If attendance was already taken, then prevent it from happening
             if (alreadyPresent)
             {
-                args.Client.SendMessage(args.ChatMessage.Channel, $"Your attendance has already been taken. Check in next time {BotVariables.obtoocBri}");
+                message = $"Your attendance has already been taken. Check in next time {BotVariables.obtoocBri}";
+
+                args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
                 return;
             }
 
@@ -85,8 +98,6 @@ namespace ooceBot.Attendance
             // Get the relevant attendance total from the DB
             command.CommandText = $"SELECT attendance_count FROM ChatterAttendance WHERE userID = @userId";
             int attendanceCount = Convert.ToInt32(command.ExecuteScalar());
-
-            string message;
             int daysInClass = attendanceCount % 10;
 
             // When reaching 10 days, reward with points
@@ -101,7 +112,7 @@ namespace ooceBot.Attendance
                 message = $"{chatterDisplayName}, your attendance has been recorded. You have {daysInClass} {(daysInClass == 1 ? "day" : "days")} on record. Let's see what happens when you reach 10 days {BotVariables.obtoocBri}";
 
             // Let 'em know
-            args.Client.SendMessage(args.ChatMessage.Channel, message);
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
     }
 }

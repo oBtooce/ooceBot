@@ -22,6 +22,8 @@ namespace ooceBot.Functionality
         /// <param name="username">The Chess.com account name to look up</param>
         public static async void AuditChatter(TwitchClient client, ChatMessage chatMessage, string username)
         {
+            string message;
+
             HttpClient getCallClient = new HttpClient();
 
             getCallClient.DefaultRequestHeaders.Add("User-Agent", $"MyChessApp/1.0 ({ConfigurationManager.AppSettings["Email"]})");
@@ -29,7 +31,11 @@ namespace ooceBot.Functionality
             HttpResponseMessage response = await getCallClient.GetAsync($"https://api.chess.com/pub/player/{username}");
 
             if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
-                client.SendMessage(chatMessage.Channel, $"{username} doesn't seem to be a valid username. Try again!");
+            {
+                message = $"{username} doesn't seem to be a valid username. Try again {BotVariables.obtoocBri}";
+
+                client.SendMessage(chatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+            }
             else
             {
                 string jsonString = await response.Content.ReadAsStringAsync();
@@ -45,7 +51,9 @@ namespace ooceBot.Functionality
 
                         if (property == false)
                         {
-                            client.SendMessage(chatMessage.Channel, $"'{username}' does not exist in the chesscom database.");
+                            message = $"'{username}' does not exist in the chesscom database.";
+
+                            client.SendMessage(chatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
                             return;
                         }
 
@@ -53,12 +61,16 @@ namespace ooceBot.Functionality
                         double startDate = joinedThing.GetDouble();
                         string joinDate = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(startDate).ToShortDateString();
 
-                        client.SendMessage(chatMessage.Channel, $"{username}'s account creation date is: {joinDate}");
+                        message = $"{username}'s account creation date is: {joinDate}";
+
+                        client.SendMessage(chatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
                     }
                 }
                 else
                 {
-                    client.SendMessage(chatMessage.Channel, $"An account with the name of '{username}' does not exist.");
+                    message = $"An account with the name of '{username}' does not exist.";
+
+                    client.SendMessage(chatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
                 }
             }
         }
@@ -71,6 +83,8 @@ namespace ooceBot.Functionality
         /// <param name="username">The Chess.com account name to look up</param>
         public static async void GetChesscomStats(TwitchClient client, ChatMessage chatMessage, string username)
         {
+            string message;
+
             HttpClient getCallClient = new HttpClient();
 
             getCallClient.DefaultRequestHeaders.Add("User-Agent", $"MyChessApp/1.0 ({ConfigurationManager.AppSettings["Email"]})");
@@ -108,27 +122,31 @@ namespace ooceBot.Functionality
                         // Make sure that there is something to return here
                         if (stats.Count == 0)
                         {
-                            client.SendMessage(chatMessage.Channel, $"An account for {username} exists, but no rapid, blitz or bullet games have been played.");
+                            message = $"An account for {username} exists, but no rapid, blitz or bullet games have been played.";
+
+                            client.SendMessage(chatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
                             return;
                         }
 
                         // Create the output string based on the available time control data
-                        string outputMessage = $"Stats for {username} (Chess.com) -- ";
+                        message = $"Stats for {username} (Chess.com) -- ";
 
                         foreach (var stat in stats)
                         {
-                            if (outputMessage.EndsWith("-- "))
-                                outputMessage += $"{stat.Key}: {stat.Value}";
+                            if (message.EndsWith("-- "))
+                                message += $"{stat.Key}: {stat.Value}";
                             else
-                                outputMessage += $" | {stat.Key}: {stat.Value}";
+                                message += $" | {stat.Key}: {stat.Value}";
                         }
 
-                        client.SendMessage(chatMessage.Channel, outputMessage);
+                        client.SendMessage(chatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
                     }
                 }
                 else
                 {
-                    client.SendMessage(chatMessage.Channel, $"An account with the name of '{username}' does not exist.");
+                    message = $"An account with the name of '{username}' does not exist.";
+
+                    client.SendMessage(chatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
                 }
             }
         }

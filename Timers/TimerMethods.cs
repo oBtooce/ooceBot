@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ooceBot.Functionality;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
@@ -44,7 +45,9 @@ namespace ooceBot.Timers
             {
                 var index = random.Next(messages.Count);
 
-                client.SendMessage(BotVariables.ChannelToJoin, messages[index]);
+                string message = messages[index];
+
+                client.SendMessage(BotVariables.ChannelToJoin, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
 
                 messages.RemoveAt(index);
 

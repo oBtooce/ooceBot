@@ -1,6 +1,7 @@
 ﻿using OBSWebsocketDotNet;
 using ooceBot.AudioVideo;
 using ooceBot.Authorization;
+using ooceBot.Functionality;
 using ooceBot.Sounds;
 using System;
 using System.Collections.Generic;
@@ -80,7 +81,9 @@ namespace ooceBot.Commands
 
                     await args.TwitchAPI.Helix.Channels.ModifyChannelInformationAsync(BotVariables.BroadcasterID, new ModifyChannelInformationRequest { GameId = gameId });
 
-                    args.Client.SendMessage(args.ChatMessage.Channel, $"Game has been updated to \"{args.CommandQuantifier}\"");
+                    string message = $"Game has been updated to \"{args.CommandQuantifier}\"";
+
+                    args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
                 }
             }
         }
@@ -91,7 +94,9 @@ namespace ooceBot.Commands
             {
                 string move = $"{BotVariables.PIECE_NOTATION[args.Random.Next(BotVariables.PIECE_NOTATION.Length)]}{BotVariables.FILE_NOTATION[args.Random.Next(BotVariables.FILE_NOTATION.Length)]}{BotVariables.RANK_NOTATION[args.Random.Next(BotVariables.RANK_NOTATION.Length)]}";
 
-                args.Client.SendMessage(args.ChatMessage.Channel, $"The move for next game is {move} obtoocBri");
+                string message = $"The move for next game is {move} {BotVariables.obtoocBri}";
+
+                args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
             }
         }
 
@@ -103,7 +108,9 @@ namespace ooceBot.Commands
                 {
                     await args.TwitchAPI.Helix.Channels.ModifyChannelInformationAsync(BotVariables.BroadcasterID, new ModifyChannelInformationRequest { Title = args.CommandQuantifier });
 
-                    args.Client.SendMessage(args.ChatMessage.Channel, $"Title has been updated to \"{args.CommandQuantifier}\"");
+                    string message = $"Title has been updated to \"{args.CommandQuantifier}\"";
+
+                    args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
                 }
             }
         }

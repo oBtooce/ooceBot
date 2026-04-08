@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 using TwitchLib.Api;
@@ -61,12 +62,16 @@ namespace ooceBot.Commands
 
             int birdCount = Convert.ToInt32(command.ExecuteScalar());
 
-            args.Client.SendMessage(args.ChatMessage.Channel, $"The Bird Opening has been used {birdCount} {(birdCount == 1 ? "time" : "times")} {BotVariables.obtoocBri}");
+            string message = $"The Bird Opening has been used {birdCount} {(birdCount == 1 ? "time" : "times")} {BotVariables.obtoocBri}";
+
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
         public static void Boner(CommandArgs args)
         {
-            args.Client.SendMessage(args.ChatMessage.Channel, $"don't get married");
+            string message = $"don't get married";
+
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
         public static void BuyIn(CommandArgs args)
@@ -78,32 +83,44 @@ namespace ooceBot.Commands
             // Check balances for player and provide tokens if balance is empty
             ArcadeMethods.HandleBuyins(args.Connection, args.ChatMessage.UserId, BotVariables.DEFAULT_BUYIN);
 
-            args.Client.SendMessage(args.ChatMessage.Channel, $"{args.ChatMessage.DisplayName}, you have been given {BotVariables.DEFAULT_BUYIN} tokens. Have fun {BotVariables.obtoocBri}");
+            string message = $"{args.ChatMessage.DisplayName}, you have been given {BotVariables.DEFAULT_BUYIN} tokens. Have fun {BotVariables.obtoocBri}";
+
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
         public static void Croissant(CommandArgs args)
         {
-            args.Client.SendMessage(args.ChatMessage.Channel, $"https://en.wikipedia.org/wiki/En_passant");
+            string message = $"https://en.wikipedia.org/wiki/En_passant";
+
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
         public static void Discord(CommandArgs args)
         {
-            args.Client.SendMessage(args.ChatMessage.Channel, "oBtooce's Discord: https://discord.gg/5RTxTFurGF");
+            string message = $"oBtooce's Discord: {BotVariables.DiscordLink}";
+
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
         public static void Emotes(CommandArgs args)
         {
-            args.Client.SendMessage(args.ChatMessage.Channel, $"Follower emotes: {BotVariables.obtoocBri} {BotVariables.obtoocF} {BotVariables.obtoocW} {BotVariables.obtoocNice} {BotVariables.obtoocOmg}");
+            string message = $"Follower emotes: {BotVariables.obtoocBri} {BotVariables.obtoocF} {BotVariables.obtoocW} {BotVariables.obtoocNice} {BotVariables.obtoocOmg}";
+
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
         public static void Exclaim(CommandArgs args)
         {
-            args.Client.SendMessage(args.ChatMessage.Channel, $"{BotVariables.obtoocBri} {BotVariables.obtoocBri} {BotVariables.obtoocBri} {BotVariables.obtoocBri} {BotVariables.obtoocBri}");
+            string message = $"{BotVariables.obtoocBri} {BotVariables.obtoocBri} {BotVariables.obtoocBri} {BotVariables.obtoocBri} {BotVariables.obtoocBri}";
+
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
         public static void FineCheddar(CommandArgs args)
         {
-            args.Client.SendMessage(args.ChatMessage.Channel, $"Some of the finest cheese can be found here: https://en.wikipedia.org/wiki/Fianchetto");
+            string message = $"Some of the finest cheese can be found here: https://en.wikipedia.org/wiki/Fianchetto";
+
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
         public static async void Groove(CommandArgs args)
@@ -148,12 +165,22 @@ namespace ooceBot.Commands
                 foreach (var key in VideoKeys)
                     commandListMessage += key == VideoKeys.Last() ? $"{key}]" : $"{key} • ";
 
-                args.Client.SendMessage(args.ChatMessage.Channel, commandListMessage);
+                string message = commandListMessage;
+
+                args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
             }
             else if (BotVariables.CommandDictionary.ContainsKey(formattedCommandText))
-                args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.CommandDictionary[formattedCommandText]);
+            {
+                string message = BotVariables.CommandDictionary[formattedCommandText];
+
+                args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+            }
             else
-                args.Client.SendMessage(args.ChatMessage.Channel, $"That command does not exist, but your enthusiasm is noted {BotVariables.obtoocBri}");
+            {
+                string message = $"That command does not exist, but your enthusiasm is noted {BotVariables.obtoocBri}";
+
+                args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+            }
         }
 
         public static void Here(CommandArgs args)
@@ -166,20 +193,35 @@ namespace ooceBot.Commands
 
         public static void Jacob(CommandArgs args)
         {
-            args.Client.SendMessage(args.ChatMessage.Channel, $"Blackjack");
-        }        
+            string message = $"Blackjack";
+
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+        }
+
+        public static void Loud(CommandArgs args)
+        {
+            // Placeholder idea: modify all existing chat message output to be UPPERCASE (some exceptions for links and whatnot)
+            BotVariables.IsYelling = BotVariables.IsYelling == true ? false : true;
+
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? $"IT'S TIME TO GET CRAAAAAAZY AND YELL!" : "Yelling time is over now.");
+        }
 
         public static void Lurk(CommandArgs args)
         {
-            args.Client.SendMessage(args.ChatMessage.Channel, $"{args.ChatMessage.Username}, your continued support is greatly appreciated. Talk to you soon {BotVariables.obtoocBri}");
+            string message = $"{args.ChatMessage.Username}, your continued support is greatly appreciated. Talk to you soon {BotVariables.obtoocBri}";
+
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
         public static void Play(CommandArgs args)
         {
+            string message;
             // Make sure that the user exists before doing anything
             if (!ArcadeMethods.CheckForPlayer(args.Connection, args.ChatMessage.UserId))
             {
-                args.Client.SendMessage(args.ChatMessage.Channel, $"Looks like this is your first time at the arcade. Type !buyin to get your first set of tokens {BotVariables.obtoocBri}");
+                message = $"Looks like this is your first time at the arcade. Type !buyin to get your first set of tokens {BotVariables.obtoocBri}";
+
+                args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
                 return;
             }
 
@@ -200,9 +242,17 @@ namespace ooceBot.Commands
                 ArcadeMethods.UpdateArcadeRecord(ref arcadeRecord, tokenValueFromPercentage, args.Connection, args.ChatMessage.UserId);
 
                 if (arcadeRecord.DidWinWager)
-                    args.Client.SendMessage(args.ChatMessage.Channel, $"{BotVariables.obtoocW} Nice win, {args.ChatMessage.DisplayName}! {BotVariables.obtoocW} Looks like you've got {arcadeRecord.TotalTokens} tokens to spend.");
+                {
+                    message = $"{BotVariables.obtoocW} Nice win, {args.ChatMessage.DisplayName}! {BotVariables.obtoocW} Looks like you've got {arcadeRecord.TotalTokens} tokens to spend.";
+
+                    args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+                }                    
                 else
-                    args.Client.SendMessage(args.ChatMessage.Channel, $"Oof...no luck this time, {args.ChatMessage.DisplayName}. Your new token total is {arcadeRecord.TotalTokens}.");
+                {
+                    message = $"Oof...no luck this time, {args.ChatMessage.DisplayName}. Your new token total is {arcadeRecord.TotalTokens}.";
+
+                    args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+                }
             }
             else if (int.TryParse(arcadeTokens, out int tokenAmount) && tokenAmount > 0) // Flat token amount
             {
@@ -218,19 +268,37 @@ namespace ooceBot.Commands
                     ArcadeMethods.UpdateArcadeRecord(ref arcadeRecord, tokenAmount, args.Connection, args.ChatMessage.UserId);
 
                     if (arcadeRecord.DidWinWager)
-                        args.Client.SendMessage(args.ChatMessage.Channel, $"{BotVariables.obtoocW} Nice win, {args.ChatMessage.DisplayName}! {BotVariables.obtoocW} Looks like you've got {arcadeRecord.TotalTokens} tokens to spend.");
+                    {
+                        message = $"{BotVariables.obtoocW} Nice win, {args.ChatMessage.DisplayName}! {BotVariables.obtoocW} Looks like you've got {arcadeRecord.TotalTokens} tokens to spend.";
+
+                        args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+                    }
                     else
-                        args.Client.SendMessage(args.ChatMessage.Channel, $"Oof...no luck this time, {args.ChatMessage.DisplayName}. Your new token total is {arcadeRecord.TotalTokens}.");
+                    {
+                        message = $"Oof...no luck this time, {args.ChatMessage.DisplayName}. Your new token total is {arcadeRecord.TotalTokens}.";
+
+                        args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+                    }
                 }
                 else
-                    args.Client.SendMessage(args.ChatMessage.Channel, $"You don't have enough tokens to make that bet. To see your current token total, type !tokens {BotVariables.obtoocBri}");
+                {
+                    message = $"You don't have enough tokens to make that bet. To see your current token total, type !tokens {BotVariables.obtoocBri}";
+
+                    args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+                }
             }
             else
-                args.Client.SendMessage(args.ChatMessage.Channel, "This seems...off. Try again with either a number (50) or a valid percentage (50%).");
+            {
+                message = "This seems...off. Try again with either a number (50) or a valid percentage (50%).";
+
+                args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+            }
         }
 
         public static void Quote(CommandArgs args)
         {
+            string message;
+
             // Check if a line number has been provided and validate it, otherwise return a random quote from the text file
             if (!string.IsNullOrEmpty(args.CommandQuantifier))
             {
@@ -238,7 +306,9 @@ namespace ooceBot.Commands
 
                 if (isNumeric == false)
                 {
-                    args.Client.SendMessage(args.ChatMessage.Channel, "If you are choosing a quote, make sure you enter a number. Otherwise, just type !randomquote or !rq for a random quote.");
+                    message = "If you are choosing a quote, make sure you enter a number. Otherwise, just type !randomquote or !rq for a random quote.";
+
+                    args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
                     return;
                 }
 
@@ -246,21 +316,37 @@ namespace ooceBot.Commands
                 var lines = File.ReadAllLines(QuoteCommandMethods.FilePath).Length;
 
                 if (result < 0 || result >= lines)
-                    args.Client.SendMessage(args.ChatMessage.Channel, $"Whoops! that number is out of range. Try a number from 0 to {lines - 1}");
+                {
+                    message = $"Whoops! that number is out of range. Try a number from 0 to {lines - 1}";
+
+                    args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+                }
                 else
-                    args.Client.SendMessage(args.ChatMessage.Channel, QuoteCommandMethods.SelectQuote(result));
+                {
+                    message = QuoteCommandMethods.SelectQuote(result);
+
+                    args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+                }
             }
             else
-                args.Client.SendMessage(args.ChatMessage.Channel, "If you are choosing a quote, make sure you enter a number! Otherwise, just type !randomquote or !rq for a random quote.");
+            {
+                message = "If you are choosing a quote, make sure you enter a number! Otherwise, just type !randomquote or !rq for a random quote.";
+
+                args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+            }
         }
 
         public static void RandomQuote(CommandArgs args)
         {
-            args.Client.SendMessage(args.ChatMessage.Channel, QuoteCommandMethods.SelectQuote());
+            string message = QuoteCommandMethods.SelectQuote();
+
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
         public static void Redeem(CommandArgs args)
         {
+            string message;
+
             // Three things to check: there is text; the text translates to a number; and the number is found within the dictionary
             if (!string.IsNullOrEmpty(args.CommandQuantifier) && int.TryParse(args.CommandQuantifier, out int key) && BotVariables.CustomRewards.TryGetValue(key, out CustomReward reward))
             {
@@ -277,27 +363,43 @@ namespace ooceBot.Commands
                     command.CommandText = $"UPDATE ChatterAttendance SET points_for_redemption = {updatedPoints} WHERE userID = @userId";
                     command.ExecuteNonQuery();
 
-                    args.Client.SendMessage(args.ChatMessage.Channel, $"{args.ChatMessage.DisplayName}, you redeemed \"{reward.Title}\" for {reward.Cost} points. Your remaining total is {updatedPoints}. Thanks for hanging out in chat {BotVariables.obtoocBri}");
+                    message = $"{args.ChatMessage.DisplayName}, you redeemed \"{reward.Title}\" for {reward.Cost} points. Your remaining total is {updatedPoints}. Thanks for hanging out in chat {BotVariables.obtoocBri}";
+
+                    args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
                 }
                 else
-                    args.Client.SendMessage(args.ChatMessage.Channel, $"{args.ChatMessage.DisplayName}, you do not have enough points to afford that reward. Pick something else {BotVariables.obtoocBri}");
+                {
+                    message = $"{args.ChatMessage.DisplayName}, you do not have enough points to afford that reward. Pick something else {BotVariables.obtoocBri}";
+
+                    args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+                }
             }
             else
-                args.Client.SendMessage(args.ChatMessage.Channel, $"To redeem a reward, please enter a number from 1 to {BotVariables.CustomRewards.Count}. You can find the list of rewards here: {ConfigurationManager.AppSettings["GitHubGistUrl"]}");
+            {
+                message = $"To redeem a reward, please enter a number from 1 to {BotVariables.CustomRewards.Count}. You can find the list of rewards here: {ConfigurationManager.AppSettings["GitHubGistUrl"]}";
+
+                args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+            }
         }
 
         public static void Rewards(CommandArgs args)
         {
-            args.Client.SendMessage(args.ChatMessage.Channel, $"Check out all channel point rewards here: {ConfigurationManager.AppSettings["GitHubGistUrl"]}");
+            string message = $"Check out all channel point rewards here: {ConfigurationManager.AppSettings["GitHubGistUrl"]}";
+
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
         public static void Rule(CommandArgs args)
         {
-            args.Client.SendMessage(args.ChatMessage.Channel, $"Donating 250 bits allows you to make a \"rule\" that oBtooce has to follow for 5 minutes. Any rules deemed to be \"unfit\" will be ignored, so make it count {BotVariables.obtoocBri}");
+            string message = $"Donating 250 bits allows you to make a \"rule\" that oBtooce has to follow for 5 minutes. Any rules deemed to be \"unfit\" will be ignored, so make it count {BotVariables.obtoocBri}";
+
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message); ;
         }
 
         public static async void Salute(CommandArgs args)
         {
+            string message;
+
             if (args.ChatMessage.IsVip || args.ChatMessage.IsSubscriber || args.ChatMessage.IsModerator || args.ChatMessage.IsBroadcaster)
             {
                 if (!BotVariables.IsAudioOrVideoPlaying)
@@ -314,19 +416,31 @@ namespace ooceBot.Commands
                     await VolumeControl.IncreaseVolume(args.NightbotSongRequestClient, updatedVolume, originalVolume);
                 }
                 else
-                    args.Client.SendMessage(args.ChatMessage.Channel, $"Gotta wait 'til the other stuff is done playing.");
+                {
+                    message = $"Gotta wait 'til the other stuff is done playing.";
+
+                    args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+                }
             }
             else
-                args.Client.SendMessage(args.ChatMessage.Channel, $"VIPs and subscribers can play song and sound commands. Want in? You know what to do...");
+            {
+                message = $"VIPs and subscribers can play song and sound commands. Want in? You know what to do...";
+
+                args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+            }
         }
 
         public static void Schedule(CommandArgs args)
         {
-            args.Client.SendMessage(args.ChatMessage.Channel, "oBtooce's schedule is a complete lie. Just tune in whenever!");
+            string message = "oBtooce's schedule is a complete lie. Just tune in whenever!";
+
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
         public static async void Sorrow(CommandArgs args)
         {
+            string message;
+
             if (args.ChatMessage.IsVip || args.ChatMessage.IsSubscriber || args.ChatMessage.IsModerator || args.ChatMessage.IsBroadcaster)
             {
                 if (!BotVariables.IsAudioOrVideoPlaying)
@@ -343,15 +457,25 @@ namespace ooceBot.Commands
                     await VolumeControl.IncreaseVolume(args.NightbotSongRequestClient, updatedVolume, originalVolume);
                 }
                 else
-                    args.Client.SendMessage(args.ChatMessage.Channel, $"Gotta wait 'til the other stuff is done playing.");
+                {
+                    message = $"Gotta wait 'til the other stuff is done playing.";
+
+                    args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+                }
             }
             else
-                args.Client.SendMessage(args.ChatMessage.Channel, $"VIPs and subscribers can play song and sound commands. Want in? You know what to do...");
+            {
+                message = $"VIPs and subscribers can play song and sound commands. Want in? You know what to do...";
+
+                args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+            }
         }
 
         public static void Spotify(CommandArgs args)
         {
-            args.Client.SendMessage(args.ChatMessage.Channel, "oBtooce's Spotify page: https://open.spotify.com/user/obtoose");
+            string message = $"oBtooce's Spotify page: {BotVariables.SpotifyPage}";
+
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
         public static void Stats(CommandArgs args)
@@ -359,22 +483,32 @@ namespace ooceBot.Commands
             if (!string.IsNullOrEmpty(args.CommandQuantifier))
                 ChessCommandMethods.GetChesscomStats(args.Client, args.ChatMessage, args.CommandQuantifier);
             else
-                args.Client.SendMessage(args.ChatMessage.Channel, $"Hmm...something went wrong. Make sure you are using a valid username and try again with the following format: !stats (username)");
+            {
+                string message = $"Hmm...something went wrong. Make sure you are using a valid username and try again with the following format: !stats (username)";
+
+                args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+            }
         }
 
         public static void Steam(CommandArgs args)
         {
-            args.Client.SendMessage(args.ChatMessage.Channel, "oBtooce's Steam page: https://steamcommunity.com/id/obtooce/");
+            string message = $"oBtooce's Steam page: {BotVariables.SteamPage}";
+
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
         public static void Store(CommandArgs args)
         {
-            args.Client.SendMessage(args.ChatMessage.Channel, $"Nothing at the store yet. Stay tuned {BotVariables.obtoocBri}");
+            string message = $"Nothing at the store yet. Stay tuned {BotVariables.obtoocBri}";
+
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
         public static void Tarf(CommandArgs args)
         {
-            args.Client.SendMessage(args.ChatMessage.Channel, $"you gotta be bad, you gotta be bold, you gotta be wiser, you gotta be hard, you gotta be tough, you gotta be stronger, you gotta be cool, you gotta be calm, you gotta stay together, all i know love will save the day - corrected");
+            string message = $"you gotta be bad, you gotta be bold, you gotta be wiser, you gotta be hard, you gotta be tough, you gotta be stronger, you gotta be cool, you gotta be calm, you gotta stay together, all i know love will save the day - corrected";
+
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
         public static void Tokens(CommandArgs args)
@@ -385,12 +519,14 @@ namespace ooceBot.Commands
             command.CommandText = $"SELECT total_tokens FROM ArcadeStats WHERE userID = @userId";
             var totalTokens = command.ExecuteScalar();
 
-            args.Client.SendMessage(args.ChatMessage.Channel, $"{args.ChatMessage.DisplayName}, you have {totalTokens} tokens {BotVariables.obtoocBri}");
+            string message = $"{args.ChatMessage.DisplayName}, you have {totalTokens} tokens {BotVariables.obtoocBri}";
+
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
         public static void TopPlayers(CommandArgs args)
         {
-            string chatMessage = string.Empty;
+            StringBuilder chatMessage = new StringBuilder();
             int position = 1;
 
             var command = args.Connection.CreateCommand();
@@ -402,27 +538,33 @@ namespace ooceBot.Commands
             {
                 while (reader.Read())
                 {
-                    chatMessage += $"{position}: {reader[0]} - {reader[1]} points";
+                    chatMessage.Append($"{position}: {reader[0]} - {reader[1]} points");
                     position++;
                 }
             }
 
-            args.Client.SendMessage(args.ChatMessage.Channel, chatMessage);
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(chatMessage.ToString()) : chatMessage.ToString());
         }
 
         public static void Twitter(CommandArgs args)
         {
-            args.Client.SendMessage(args.ChatMessage.Channel, "oBtooce's Twitter: https://twitter.com/oBtuuse");
+            string message = $"oBtooce's Twitter: {BotVariables.TwitterPage}";
+
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
         public static void Vid(CommandArgs args)
         {
-            args.Client.SendMessage(args.ChatMessage.Channel, "Latest YouTube video: https://youtu.be/STmFRwBFvqc");
-        }
+            string message = $"Latest YouTube video: {BotVariables.LatestYTVideo}";
+
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+        }        
 
         public static void YouTube(CommandArgs args)
         {
-            args.Client.SendMessage(args.ChatMessage.Channel, "oBtooce's YouTube channel: https://www.youtube.com/channel/UCjS2ciB4D3iftZS3Hj1CCWg");
+            string message = $"oBtooce's YouTube channel: {BotVariables.YouTubeChannel}";
+
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
     }
 }
