@@ -198,14 +198,6 @@ namespace ooceBot.Commands
             args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
-        public static void Loud(CommandArgs args)
-        {
-            // Placeholder idea: modify all existing chat message output to be UPPERCASE (some exceptions for links and whatnot)
-            BotVariables.IsYelling = BotVariables.IsYelling == true ? false : true;
-
-            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? $"IT'S TIME TO GET CRAAAAAAZY AND YELL!" : "Yelling time is over now.");
-        }
-
         public static void Lurk(CommandArgs args)
         {
             string message = $"{args.ChatMessage.Username}, your continued support is greatly appreciated. Talk to you soon {BotVariables.obtoocBri}";

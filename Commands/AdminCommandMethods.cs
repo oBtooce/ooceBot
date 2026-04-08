@@ -88,6 +88,14 @@ namespace ooceBot.Commands
             }
         }
 
+        public static void Loud(CommandArgs args)
+        {
+            // Placeholder idea: modify all existing chat message output to be UPPERCASE (some exceptions for links and whatnot)
+            BotVariables.IsYelling = BotVariables.IsYelling == true ? false : true;
+
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? $"IT'S TIME TO GET CRAAAAAAZY AND YELL!" : "Yelling time is over now.");
+        }
+
         public static void RNGMove(CommandArgs args)
         {
             if (args.ChatMessage.IsBroadcaster || args.ChatMessage.IsModerator)

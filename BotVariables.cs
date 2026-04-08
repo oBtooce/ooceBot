@@ -96,6 +96,7 @@ namespace ooceBot
             { "back", AdminCommandMethods.Back },
             { "brb", AdminCommandMethods.BRB },
             { "!game", AdminCommandMethods.Game },
+            { "!loud", AdminCommandMethods.Loud },
             { "!rngmove", AdminCommandMethods.RNGMove },
             { "!title", AdminCommandMethods.Title },
         };
@@ -116,7 +117,6 @@ namespace ooceBot
             { "!help", CommandMethods.Help },
             { "!here", CommandMethods.Here },
             { "!jacob", CommandMethods.Jacob },
-            { "!loud", CommandMethods.Loud },
             { "!lurk", CommandMethods.Lurk },
             { "!play", CommandMethods.Play },
             { "!quote", CommandMethods.Quote },
