@@ -127,7 +127,7 @@ namespace ooceBot.Commands
         {
             //if (args.ChatMessage.IsVip || args.ChatMessage.IsSubscriber || args.ChatMessage.IsModerator || args.ChatMessage.IsBroadcaster)
             //{
-            //    // Get the current volume from the API
+            //    // Get the current volume from the API (whole numbers are the only accepted values, so we use ints for all calculations)
             //    int originalVolume = await VolumeControl.GetNightbotCurrentVolume(args.NightbotSongRequestClient);
 
             //    // Keep track of the volume for the reset after the video is done
@@ -200,7 +200,7 @@ namespace ooceBot.Commands
 
         public static void Lurk(CommandArgs args)
         {
-            string message = $"{args.ChatMessage.Username}, your continued support is greatly appreciated. Talk to you soon {BotVariables.obtoocBri}";
+            string message = $"{args.ChatMessage.DisplayName}, your continued support is greatly appreciated. Talk to you soon {BotVariables.obtoocBri}";
 
             args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
@@ -396,11 +396,11 @@ namespace ooceBot.Commands
             {
                 if (!BotVariables.IsAudioOrVideoPlaying)
                 {
-                    // Get the current volume from the API
-                    double originalVolume = await VolumeControl.GetNightbotCurrentVolume(args.NightbotSongRequestClient);
+                    // Get the current volume from the API (whole numbers are the only accepted values, so we use ints for all calculations)
+                    int originalVolume = await VolumeControl.GetNightbotCurrentVolume(args.NightbotSongRequestClient);
 
                     // Keep track of the volume for the reset after the video is done
-                    double updatedVolume = await VolumeControl.ReduceVolume(args.NightbotSongRequestClient, originalVolume, originalVolume);
+                    int updatedVolume = await VolumeControl.ReduceVolume(args.NightbotSongRequestClient, originalVolume, originalVolume);
 
                     PlaySounds.PlaySoundWithFader($"{ConfigurationManager.AppSettings["SoundsFolder"]}\\Beautiful Trumpet.mp3", 2000, 2000);
 
@@ -437,11 +437,11 @@ namespace ooceBot.Commands
             {
                 if (!BotVariables.IsAudioOrVideoPlaying)
                 {
-                    // Get the current volume from the API
-                    double originalVolume = await VolumeControl.GetNightbotCurrentVolume(args.NightbotSongRequestClient);
+                    // Get the current volume from the API (whole numbers are the only accepted values, so we use ints for all calculations)
+                    int originalVolume = await VolumeControl.GetNightbotCurrentVolume(args.NightbotSongRequestClient);
 
                     // Keep track of the volume for the reset after the video is done
-                    double updatedVolume = await VolumeControl.ReduceVolume(args.NightbotSongRequestClient, originalVolume, originalVolume);
+                    int updatedVolume = await VolumeControl.ReduceVolume(args.NightbotSongRequestClient, originalVolume, originalVolume);
 
                     PlaySounds.PlaySoundWithFader($"{ConfigurationManager.AppSettings["SoundsFolder"]}\\Berserk soundtrack - 4 Gatsu.mp3", 2000, 2000);
 

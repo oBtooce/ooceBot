@@ -68,12 +68,12 @@ namespace ooceBot.Bits
         {
             OBSWebsocket websocket = await OBSManager.ConnectToOBSWebsocket();
 
-            // Get the current volume from the API
-            double originalVolume = await VolumeControl.GetNightbotCurrentVolume(nightbotClient);
-            double volumeChange = originalVolume * 0.9;
+            // Get the current volume from the API (whole numbers are the only accepted values, so we use ints for all calculations)
+            int originalVolume = await VolumeControl.GetNightbotCurrentVolume(nightbotClient);
+            int volumeChange = (int)(originalVolume * 0.9);
 
             // Keep track of the volume for the reset after the video is done
-            double updatedVolume = await VolumeControl.ReduceVolume(nightbotClient, originalVolume, volumeChange);
+            int updatedVolume = await VolumeControl.ReduceVolume(nightbotClient, originalVolume, volumeChange);
 
             // The source needs to exist in the currently selected scene, so fetch the current scene name and its items
             var currentScene = websocket.GetCurrentProgramScene();

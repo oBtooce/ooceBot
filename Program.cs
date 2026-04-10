@@ -5,6 +5,7 @@ using TwitchLib.Client.Events;
 using TwitchLib.Client.Models;
 using TwitchLib.Communication.Clients;
 using TwitchLib.Communication.Models;
+using TwitchLib.EventSub.Websockets;
 using ooceBot;
 using ooceBot.Authorization;
 using ooceBot.SQL;
@@ -19,9 +20,9 @@ class Program
 {
     public static TwitchClient Client { get; set; }
 
-    private static HttpClient NightbotSongRequestClient { get; set; }
+    public static HttpClient NightbotSongRequestClient { get; set; }
 
-    private static SqliteConnection Connection { get; set; } = new SqliteConnection("Data Source=TwitchStats.db");
+    public static SqliteConnection Connection { get; set; } = new SqliteConnection("Data Source=TwitchStats.db");
 
     public static TwitchAPI _twitchApi = new TwitchAPI(settings: new ApiSettings { ClientId = ConfigurationManager.AppSettings["TwitchClientID"], AccessToken = ConfigurationManager.AppSettings["TwitchBroadcasterAccessToken"] });
 
@@ -45,15 +46,16 @@ class Program
 
         Client.OnConnected += Client_OnConnected;
         Client.OnMessageReceived += Client_OnMessageReceived;
-
         Client.OnError += (s, e) => Console.WriteLine("Error: " + e.Exception.Message);
-
         Client.OnLog += (s, e) =>
         {
             Console.WriteLine($"{e.DateTime:HH:mm:ss} {e.BotUsername} - {e.Data}");
         };
 
         Client.Connect();
+
+        await EventSubWebsocketManager.SetupEventSub(NightbotSongRequestClient, _twitchApi);
+
         Console.ReadLine();
     }
 

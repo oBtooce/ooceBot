@@ -31,12 +31,12 @@ namespace ooceBot.Commands
                 websocket.SetSourceFilterEnabled(currentScene, "Freeze Filter", false);
                 websocket.SetInputMute("Mic/Aux", false);
 
-                // Get the current volume from the API
-                double originalVolume = await VolumeControl.GetNightbotCurrentVolume(args.NightbotSongRequestClient);
-                double volumeChange = BotVariables.DEFAULT_NIGHTBOT_VOLUME;
+                // Get the current volume from the API (whole numbers are the only accepted values, so we use ints for all calculations)
+                int originalVolume = await VolumeControl.GetNightbotCurrentVolume(args.NightbotSongRequestClient);
+                int volumeChange = BotVariables.DEFAULT_NIGHTBOT_VOLUME;
 
                 // Keep track of the volume for the reset after the video is done
-                double updatedVolume = await VolumeControl.IncreaseVolume(args.NightbotSongRequestClient, originalVolume, volumeChange);
+                await VolumeControl.IncreaseVolume(args.NightbotSongRequestClient, originalVolume, volumeChange);
             }
         }
 
@@ -49,12 +49,12 @@ namespace ooceBot.Commands
                 // 3-second delay before screen kicks in
                 await Task.Delay(5000);
 
-                // Get the current volume from the API
-                double originalVolume = await VolumeControl.GetNightbotCurrentVolume(args.NightbotSongRequestClient);
-                double volumeChange = originalVolume;
+                // Get the current volume from the API (whole numbers are the only accepted values, so we use ints for all calculations)
+                int originalVolume = await VolumeControl.GetNightbotCurrentVolume(args.NightbotSongRequestClient);
+                int volumeChange = originalVolume;
 
                 // Keep track of the volume for the reset after the video is done
-                double updatedVolume = await VolumeControl.ReduceVolume(args.NightbotSongRequestClient, originalVolume, volumeChange);
+                int updatedVolume = await VolumeControl.ReduceVolume(args.NightbotSongRequestClient, originalVolume, volumeChange);
 
                 // Fetch the current scene name and its items
                 var currentScene = websocket.GetCurrentProgramScene();

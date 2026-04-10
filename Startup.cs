@@ -53,7 +53,9 @@ namespace ooceBot
             BotVariables.BroadcasterID = users.Users[0].Id;
 
             var currentStream = await api.Helix.Streams.GetStreamsAsync(userLogins: new List<string> { BotVariables.ChannelToJoin });
-            BotVariables.StreamStartTime = currentStream.Streams[0].StartedAt.ToString("yyyy-MM-dd");
+
+            if (currentStream.Streams.Length > 0)
+                BotVariables.StreamStartTime = currentStream.Streams[0].StartedAt.ToString("yyyy-MM-dd");
 
             // Get all currently enabled custom rewards
             var customRewards = await api.Helix.ChannelPoints.GetCustomRewardAsync(BotVariables.BroadcasterID);
