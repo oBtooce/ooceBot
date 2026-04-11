@@ -117,6 +117,7 @@ namespace ooceBot
             { "!groove", CommandMethods.Groove },
             { "!help", CommandMethods.Help },
             { "!here", CommandMethods.Here },
+            { "!hug", CommandMethods.Dap },
             { "!jacob", CommandMethods.Jacob },
             { "!lurk", CommandMethods.Lurk },
             { "!p", CommandMethods.Personality },

@@ -56,9 +56,9 @@ Commands are routed via four static `Dictionary<string, Action<CommandArgs>>` in
 ### Database (SQLite)
 
 Four tables initialized at startup via `SQL/TableSQLMethods.cs`:
-- **Chatters** — userID, username, has_theme, has_chatted_this_stream
-- **ChatterAttendance** — attendance_count, total_attendance, is_present, points_for_redemption
-- **ArcadeStats** — wagering history, token balance, streaks
+- **Chatters** — Id, DisplayName, HasTheme, HasChattedThisStream
+- **Attendance** — AttendanceCount, TotalAttendance, IsPresent, PointsForRedemption
+- **ArcadeRecords** — wagering history, token balance, streaks
 - **CommandUsage** — per-command usage counts
 
 `SQL/DBQueryMethods.cs` contains helper methods called on each message (`UpdateChatterDataPlusMaybeTheme`, `VerifyExistenceInChattersTable`).
@@ -73,7 +73,7 @@ Four tables initialized at startup via `SQL/TableSQLMethods.cs`:
 
 ### Arcade/Token System
 
-`Miscellaneous/ArcadeMethods.cs` implements a wagering mini-game (`!play` command): 50/50 RNG with a slight house edge (midpoint at 45/100). Tracks per-user stats in the ArcadeStats table.
+`Miscellaneous/ArcadeMethods.cs` implements a wagering mini-game (`!play` command): 50/50 RNG with a slight house edge (midpoint at 45/100). Tracks per-user stats in the ArcadeRecords table.
 
 ### Attendance System
 

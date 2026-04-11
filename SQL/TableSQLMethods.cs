@@ -39,13 +39,13 @@ namespace ooceBot.SQL
             // Table creation
             command.CommandText = @"
                 CREATE TABLE IF NOT EXISTS Chatters (
-                    userID TEXT PRIMARY KEY,
-                    username TEXT,
-                    has_theme INTEGER NOT NULL DEFAULT 0,
-                    has_chatted_this_stream INTEGER NOT NULL DEFAULT 0
+                    Id TEXT PRIMARY KEY,
+                    DisplayName TEXT,
+                    HasTheme INTEGER NOT NULL DEFAULT 0,
+                    HasChattedThisStream INTEGER NOT NULL DEFAULT 0
                 );
 
-                CREATE INDEX IF NOT EXISTS idx_username_lower ON Chatters (LOWER(username));
+                CREATE INDEX IF NOT EXISTS idx_displayname_lower ON Chatters (LOWER(DisplayName));
             ";
 
             command.ExecuteNonQuery();
@@ -61,21 +61,21 @@ namespace ooceBot.SQL
 
             // Table creation
             command.CommandText = @"
-                CREATE TABLE IF NOT EXISTS ChatterAttendance (
-                    userID TEXT PRIMARY KEY,
-                    attendance_count INTEGER DEFAULT 0,
-                    total_attendance INTEGER NOT NULL DEFAULT 0,
-                    is_present INTEGER NOT NULL DEFAULT 0,
-                    last_present_date TEXT DEFAULT NULL,
-                    points_for_redemption INTEGER NOT NULL DEFAULT 0,
-                    FOREIGN KEY (userID) REFERENCES Chatters(userID)
+                CREATE TABLE IF NOT EXISTS AttendanceRecords (
+                    Id TEXT PRIMARY KEY,
+                    AttendanceCount INTEGER DEFAULT 0,
+                    TotalAttendance INTEGER NOT NULL DEFAULT 0,
+                    IsPresent INTEGER NOT NULL DEFAULT 0,
+                    LastPresentDate TEXT DEFAULT NULL,
+                    PointsForRedemption INTEGER NOT NULL DEFAULT 0,
+                    FOREIGN KEY (Id) REFERENCES Chatters(Id)
                 )
             ";
 
             command.ExecuteNonQuery();
 
             // Attendance is reset for the day
-            command.CommandText = "UPDATE ChatterAttendance SET is_present = 0";
+            command.CommandText = "UPDATE AttendanceRecords SET IsPresent = 0";
             command.ExecuteNonQuery();
         }
 
@@ -89,15 +89,15 @@ namespace ooceBot.SQL
 
             // Table creation
             command.CommandText = @"
-                CREATE TABLE IF NOT EXISTS ArcadeStats (
-                    userID TEXT PRIMARY KEY,
-                    times_wagered INTEGER NOT NULL DEFAULT 0,
-                    total_tokens INTEGER NOT NULL DEFAULT 0,
-                    largest_wager INTEGER NOT NULL DEFAULT 0,
-                    high_score INTEGER NOT NULL DEFAULT 0,
-                    winning_streak INTEGER NOT NULL DEFAULT 0,
-                    longest_winning_streak INTEGER NOT NULL DEFAULT 0,
-                    FOREIGN KEY (userID) REFERENCES Chatters(userID)
+                CREATE TABLE IF NOT EXISTS ArcadeRecords (
+                    Id TEXT PRIMARY KEY,
+                    TimesWagered INTEGER NOT NULL DEFAULT 0,
+                    TotalTokens INTEGER NOT NULL DEFAULT 0,
+                    LargestWager INTEGER NOT NULL DEFAULT 0,
+                    HighScore INTEGER NOT NULL DEFAULT 0,
+                    WinningStreak INTEGER NOT NULL DEFAULT 0,
+                    LongestWinningStreak INTEGER NOT NULL DEFAULT 0,
+                    FOREIGN KEY (Id) REFERENCES Chatters(Id)
                 )
             ";
 
@@ -115,15 +115,15 @@ namespace ooceBot.SQL
             // Table creation
             command.CommandText = @"
                 CREATE TABLE IF NOT EXISTS CommandUsage (
-                    commandID TEXT PRIMARY KEY,
-                    usage_count INTEGER NOT NULL DEFAULT 0                  
+                    Id TEXT PRIMARY KEY,
+                    UsageCount INTEGER NOT NULL DEFAULT 0                  
                 )
             ";
 
             command.ExecuteNonQuery();
 
             // Reset command usage counts back to default
-            command.CommandText = "UPDATE CommandUsage SET usage_count = 0";
+            command.CommandText = "UPDATE CommandUsage SET UsageCount = 0";
             command.ExecuteNonQuery();
         }
 
@@ -133,11 +133,11 @@ namespace ooceBot.SQL
 
             // Table creation
             command.CommandText = @"
-                CREATE TABLE IF NOT EXISTS DapStats (
-                    userID TEXT PRIMARY KEY,
-                    daps_given INTEGER NOT NULL DEFAULT 0,
-                    daps_received INTEGER NOT NULL DEFAULT 0,
-                    FOREIGN KEY (userID) REFERENCES Chatters (userID)
+                CREATE TABLE IF NOT EXISTS DapRecords (
+                    Id TEXT PRIMARY KEY,
+                    DapsGiven INTEGER NOT NULL DEFAULT 0,
+                    DapsReceived INTEGER NOT NULL DEFAULT 0,
+                    FOREIGN KEY (Id) REFERENCES Chatters (Id)
                 )
             ";
 
@@ -154,12 +154,12 @@ namespace ooceBot.SQL
 
             // Table creation
             command.CommandText = @"
-                CREATE TABLE IF NOT EXISTS Miscellaneous (
-                    id INTEGER PRIMARY KEY CHECK (id = 1),
-                    bird_counter INTEGER NOT NULL DEFAULT 0
+                CREATE TABLE IF NOT EXISTS GeneralStreamData (
+                    Id INTEGER PRIMARY KEY CHECK (Id = 1),
+                    BirdCounter INTEGER NOT NULL DEFAULT 0
                 );
 
-                INSERT OR IGNORE INTO Miscellaneous (id, bird_counter) VALUES (1, 0);
+                INSERT OR IGNORE INTO GeneralStreamData (Id, BirdCounter) VALUES (1, 0);
             ";
 
             command.ExecuteNonQuery();

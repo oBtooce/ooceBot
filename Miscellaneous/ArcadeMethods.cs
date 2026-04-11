@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TwitchLib.Api.Helix.Models.Charity.GetCharityCampaign;
 using TwitchLib.Client.Models;
+using ooceBot.Models;
 
 namespace ooceBot.Miscellaneous
 {
@@ -23,7 +24,7 @@ namespace ooceBot.Miscellaneous
             var command = connection.CreateCommand();
             command.Parameters.AddWithValue("@userId", userId);
 
-            command.CommandText = "SELECT * FROM ArcadeStats WHERE userID = @userId";
+            command.CommandText = "SELECT * FROM ArcadeRecords WHERE Id = @userId";
 
             return command.ExecuteScalar() != null;
         }
@@ -47,7 +48,7 @@ namespace ooceBot.Miscellaneous
             var chatterStatistics = connection.CreateCommand();
             chatterStatistics.Parameters.AddWithValue("@userId", userId);
 
-            chatterStatistics.CommandText = "SELECT * FROM ArcadeStats WHERE userID = @userId";
+            chatterStatistics.CommandText = "SELECT * FROM ArcadeRecords WHERE Id = @userId";
 
             using (SqliteDataReader reader = chatterStatistics.ExecuteReader())
             {
@@ -56,12 +57,12 @@ namespace ooceBot.Miscellaneous
                 {
                     currentStats = new ArcadeStats()
                     {
-                        TimesWagered = reader.GetInt32(reader.GetOrdinal("times_wagered")),
-                        TotalTokens = reader.GetInt32(reader.GetOrdinal("total_tokens")),
-                        LargestWager = reader.GetInt32(reader.GetOrdinal("largest_wager")),
-                        HighScore = reader.GetInt32(reader.GetOrdinal("high_score")),
-                        WinningStreak = reader.GetInt32(reader.GetOrdinal("winning_streak")),
-                        LongestWinningStreak = reader.GetInt32(reader.GetOrdinal("longest_winning_streak")),
+                        TimesWagered = reader.GetInt32(reader.GetOrdinal("TimesWagered")),
+                        TotalTokens = reader.GetInt32(reader.GetOrdinal("TotalTokens")),
+                        LargestWager = reader.GetInt32(reader.GetOrdinal("LargestWager")),
+                        HighScore = reader.GetInt32(reader.GetOrdinal("HighScore")),
+                        WinningStreak = reader.GetInt32(reader.GetOrdinal("WinningStreak")),
+                        LongestWinningStreak = reader.GetInt32(reader.GetOrdinal("LongestWinningStreak")),
                         DidWinWager = true
                     };
                 }
@@ -78,7 +79,7 @@ namespace ooceBot.Miscellaneous
             tokenTotal.Parameters.AddWithValue("@userID", userID);
 
             // todo: add where clause to attach to specific chatter
-            tokenTotal.CommandText = $"SELECT total_tokens FROM ArcadeStats WHERE userID = @userID";
+            tokenTotal.CommandText = $"SELECT TotalTokens FROM ArcadeRecords WHERE Id = @userID";
 
             return Convert.ToInt32(tokenTotal.ExecuteScalar());
         }
@@ -89,12 +90,12 @@ namespace ooceBot.Miscellaneous
             command.Parameters.AddWithValue("@userId", userId);
             command.Parameters.AddWithValue("@defaultBuyin", defaultBuyin);
 
-            command.CommandText = "SELECT total_tokens FROM ArcadeStats WHERE userID = @userId";
+            command.CommandText = "SELECT TotalTokens FROM ArcadeRecords WHERE Id = @userId";
 
             // Check if the total token value is less than the default buy-in and add some tokens for playing
             if (Convert.ToInt32(command.ExecuteScalar()) < defaultBuyin)
             {
-                command.CommandText = "UPDATE ArcadeStats SET total_tokens = @defaultBuyin WHERE userID = @userId";
+                command.CommandText = "UPDATE ArcadeRecords SET TotalTokens = @defaultBuyin WHERE Id = @userId";
                 command.ExecuteNonQuery();
             }
         }
@@ -103,7 +104,7 @@ namespace ooceBot.Miscellaneous
         {
             var command = connection.CreateCommand();
             command.Parameters.AddWithValue("@userId", userId);
-            command.CommandText = "INSERT OR IGNORE INTO ArcadeStats (userID, times_wagered, total_tokens, largest_wager, high_score, winning_streak, longest_winning_streak) VALUES (@userId, 0, 0, 0, 0, 0, 0)";
+            command.CommandText = "INSERT OR IGNORE INTO ArcadeRecords (Id, TimesWagered, TotalTokens, LargestWager, HighScore, WinningStreak, LongestWinningStreak) VALUES (@userId, 0, 0, 0, 0, 0, 0)";
 
             command.ExecuteNonQuery();
         }
@@ -136,15 +137,15 @@ namespace ooceBot.Miscellaneous
             var command = connection.CreateCommand();
             command.Parameters.AddWithValue("@userId", userId);
             command.CommandText = $@"
-    UPDATE ArcadeStats 
+    UPDATE ArcadeRecords 
     SET 
-        times_wagered = {currentStats.TimesWagered},
-        total_tokens = {currentStats.TotalTokens},
-        largest_wager = {currentStats.LargestWager},
-        high_score = {currentStats.HighScore},
-        winning_streak = {currentStats.WinningStreak},
-        longest_winning_streak = {currentStats.LongestWinningStreak}
-    WHERE userID = @userId";
+        TimesWagered = {currentStats.TimesWagered},
+        TotalTokens = {currentStats.TotalTokens},
+        LargestWager = {currentStats.LargestWager},
+        HighScore = {currentStats.HighScore},
+        WinningStreak = {currentStats.WinningStreak},
+        LongestWinningStreak = {currentStats.LongestWinningStreak}
+    WHERE Id = @userId";
 
             command.ExecuteNonQuery();
         }

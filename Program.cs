@@ -1,20 +1,22 @@
 ﻿using Microsoft.Data.Sqlite;
+using ooceBot;
+using ooceBot.Authorization;
+using ooceBot.Bits;
+using ooceBot.Commands;
+using ooceBot.Miscellaneous;
+using ooceBot.Models;
+using ooceBot.SQL;
+using ooceBot.Timers;
+using System;
+using System.Configuration;
 using TwitchLib.Api;
+using TwitchLib.Api.Core;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
 using TwitchLib.Client.Models;
 using TwitchLib.Communication.Clients;
 using TwitchLib.Communication.Models;
 using TwitchLib.EventSub.Websockets;
-using ooceBot;
-using ooceBot.Authorization;
-using ooceBot.SQL;
-using System.Configuration;
-using ooceBot.Commands;
-using TwitchLib.Api.Core;
-using ooceBot.Timers;
-using ooceBot.Bits;
-using ooceBot.Miscellaneous;
 
 class Program
 {
@@ -25,6 +27,8 @@ class Program
     public static SqliteConnection Connection { get; set; } = new SqliteConnection("Data Source=TwitchStats.db");
 
     public static TwitchAPI _twitchApi = new TwitchAPI(settings: new ApiSettings { ClientId = ConfigurationManager.AppSettings["TwitchClientID"], AccessToken = ConfigurationManager.AppSettings["TwitchBroadcasterAccessToken"] });
+
+    public static TwitchBotContext dbContext = new TwitchBotContext();
 
     public static async Task Main(string[] args)
     {
@@ -82,10 +86,10 @@ class Program
             BitMethods.HandleBitsMessage(Client, e.ChatMessage, NightbotSongRequestClient);
         else if (BotVariables.CommandsList.TryGetValue(messageParts.First().ToLower(), out BotVariables.Command command) || BotVariables.AdminCommands.TryGetValue(messageParts.First().ToLower(), out command))
             if (messageParts.Length == 1)
-                command(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, _twitchApi, messageParts.First(), string.Empty));
+                command(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, _twitchApi, messageParts.First(), string.Empty, dbContext));
             else
-                command(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, _twitchApi, messageParts.First(), messageParts.Last()));
+                command(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, _twitchApi, messageParts.First(), messageParts.Last(), dbContext));
         else if (BotVariables.VideoCommands.TryGetValue(messageParts.First().ToLower(), out command) || BotVariables.WordCommands.TryGetValue(messageParts.First().ToLower(), out command))
-            command(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, _twitchApi, messageParts.First(), string.Empty));
+            command(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, _twitchApi, messageParts.First(), string.Empty, dbContext));
     }
 }

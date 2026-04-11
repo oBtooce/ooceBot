@@ -22,7 +22,7 @@ namespace ooceBot.SQL
             foreach (var cmd in videoCommands)
             {
                 command.Parameters["@commandName"].Value = cmd.Key;
-                command.CommandText = $"INSERT OR IGNORE INTO CommandUsage (commandID) VALUES (@commandName)";
+                command.CommandText = $"INSERT OR IGNORE INTO CommandUsage (Id) VALUES (@commandName)";
 
                 command.ExecuteNonQuery();
             }
@@ -41,17 +41,17 @@ namespace ooceBot.SQL
             command.Parameters.AddWithValue("@chatter", message.DisplayName);
             command.Parameters.AddWithValue("@chatterid", message.UserId);
 
-            command.CommandText = "SELECT * FROM Chatters WHERE userID = @chatterid OR username = @chatter LIMIT 1";
+            command.CommandText = "SELECT * FROM Chatters WHERE Id = @chatterid OR DisplayName = @chatter LIMIT 1";
 
             // If no user was found for either the submitted ID and username, make a new record
             if (command.ExecuteScalar() == null)
             {
-                command.CommandText = "INSERT INTO Chatters (userID, username) VALUES (@chatterid, @chatter)";
+                command.CommandText = "INSERT INTO Chatters (Id, DisplayName) VALUES (@chatterid, @chatter)";
                 command.ExecuteNonQuery();
             }
             else // Perform an update on the found record
             {
-                command.CommandText = "UPDATE Chatters SET userID = @chatterid, username = @chatter WHERE userID = @chatterid OR username = @chatter";
+                command.CommandText = "UPDATE Chatters SET Id = @chatterid, DisplayName = @chatter WHERE Id = @chatterid OR DisplayName = @chatter";
                 command.ExecuteNonQuery();
             }
         }
@@ -65,15 +65,15 @@ namespace ooceBot.SQL
             command.Parameters.AddWithValue("@username", message.Username);
 
             command.CommandText = $@"
-                INSERT INTO Chatters (userID, username, has_theme, has_chatted_this_stream) VALUES (@userId, @username, 0, 1)
+                INSERT INTO Chatters (Id, DisplayName, HasTheme, HasChattedThisStream) VALUES (@userId, @username, 0, 1)
                 ON CONFLICT(userID)
-                DO UPDATE SET has_chatted_this_stream = 1
+                DO UPDATE SET HasChattedThisStream = 1
             ";
 
             //using (SqliteDataReader reader = command.ExecuteReader())
             //{
             //    // Since Sqlite does not have a bool primitive, we check for 1 from the return
-            //    var hasCustomIntro = reader.GetInt32(reader.GetOrdinal("has_theme"));
+            //    var hasCustomIntro = reader.GetInt32(reader.GetOrdinal("HasTheme"));
 
             //    if (hasCustomIntro == 1)
             //    {

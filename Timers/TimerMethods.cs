@@ -20,18 +20,18 @@ namespace ooceBot.Timers
         {
             "Remember to file your taxes.",
             "BOO! Gotcha nerd",
-            "Typing !here will take your attendance. If you report in enough times, you get rewards!",
-            "Twitch Prime subscriptions are greatly appreciated!",
+            $"Typing !here will take your attendance. If you report in enough times, you get rewards{BotVariables.obtoocBri}",
+            $"Twitch Prime subscriptions are greatly appreciated {BotVariables.obtoocBri}",
             "Follow this channel to support local businesses.",
             "ʕ•ᴥ•ʔ",
             new ZalgoString("AHAHAHAHAHAHAHAHAHAHAHA", FuckUpMode.Max, FuckUpPosition.All).ToString(),
-            "Type !stats (username) to see someone's chess.com ratings!",
-            "Check out my socials: https://linktr.ee/obtooce",
+            $"Type !stats (username) to see someone's chess.com ratings {BotVariables.obtoocBri}",
+            "Check out oBtooce's socials: https://linktr.ee/obtooce",
             "Song requests (!sr song-title-or-yt-link)",
-            "Roll the dice (!d6 / !d20 / !d100)!",
+            $"Got a big personality? Type !p to show it off {BotVariables.obtoocBri}",
             "A list of commands can be found here: !help",
-            "Follower emotes: obtoocBri obtoocF obtoocW obtoocNice obtoocOmg",
-            "Donate 100 bits to receive a COOL PRIZE!"
+            $"Follower emotes: {BotVariables.obtoocBri} {BotVariables.obtoocF} {BotVariables.obtoocW} {BotVariables.obtoocNice} {BotVariables.obtoocOmg}",
+            $"Donate 100 bits to receive a COOL PRIZE {BotVariables.obtoocBri}"
         };
 
         public static async Task PostMessageInChat(TwitchClient client, TimeSpan downtime)

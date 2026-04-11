@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.Sqlite;
+using ooceBot.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,9 +31,11 @@ namespace ooceBot.Commands
 
         public string CommandQuantifier { get; set; }
 
+        public TwitchBotContext Context { get; set; }
+
         public Random Random { get; set; } = new Random();
 
-        public CommandArgs(TwitchClient client, ChatMessage message, SqliteConnection connection, HttpClient nightbotSongRequestClient, TwitchAPI twitchApi, string commandText, string commandQuantifier)
+        public CommandArgs(TwitchClient client, ChatMessage message, SqliteConnection connection, HttpClient nightbotSongRequestClient, TwitchAPI twitchApi, string commandText, string commandQuantifier, TwitchBotContext context)
         {
             Client = client;
             ChatMessage = message;
@@ -41,6 +44,7 @@ namespace ooceBot.Commands
             TwitchAPI = twitchApi;
             CommandText = commandText;
             CommandQuantifier = commandQuantifier;
+            Context = context;
         }
     }
 }

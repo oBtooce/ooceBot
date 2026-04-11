@@ -5,6 +5,7 @@ using ooceBot.AudioVideo;
 using ooceBot.Authorization;
 using ooceBot.Functionality;
 using ooceBot.Miscellaneous;
+using ooceBot.Models;
 using ooceBot.Sounds;
 using ooceBot.SQL;
 using System;
@@ -66,11 +67,13 @@ namespace ooceBot.Commands
 
         public static void Bird(CommandArgs args)
         {
-            var command = args.Connection.CreateCommand();
+            int birdCount = -1;
 
-            command.CommandText = $"UPDATE Miscellaneous SET bird_counter = bird_counter + 1 RETURNING bird_counter";
+            // Verify that the DB grabbed a value
+            var obj = args.Context.GeneralStreamData.FirstOrDefault();
 
-            int birdCount = Convert.ToInt32(command.ExecuteScalar());
+            if (obj is not null)
+                birdCount = obj.BirdCounter;
 
             string message = $"The Bird Opening has been used {birdCount} {(birdCount == 1 ? "time" : "times")} {BotVariables.obtoocBri}";
             args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
@@ -115,7 +118,7 @@ namespace ooceBot.Commands
             command.Parameters.AddWithValue("@dapperId", args.ChatMessage.UserId);
 
             // The LOWER() calls are due to the fact that the DB holds chatter display names instead of usernames, which are all lowercase by design
-            command.CommandText = $"SELECT userID, username FROM Chatters WHERE LOWER(username) = LOWER(@receiverName)";
+            command.CommandText = $"SELECT Id, DisplayName FROM Chatters WHERE LOWER(DisplayName) = LOWER(@receiverName)";
 
             using var reader = command.ExecuteReader();
 
@@ -143,23 +146,30 @@ namespace ooceBot.Commands
 
             // Increase the dap counter for the giver and the receiver
             command.CommandText = $@"
-                INSERT INTO DapStats (userID, daps_given, daps_received) VALUES (@dapperId, 1, 0)
-                ON CONFLICT(userID)
-                DO UPDATE SET daps_given = daps_given + 1 RETURNING daps_given
+                INSERT INTO DapRecords (Id, DapsGiven, DapsReceived) VALUES (@dapperId, 1, 0)
+                ON CONFLICT(Id)
+                DO UPDATE SET DapsGiven = DapsGiven + 1 RETURNING DapsGiven
             ";
 
             int dapsGiven = Convert.ToInt32(command.ExecuteScalar());
 
             // Command 3: Increase daps received for the selected chatter
             command.CommandText = $@"
-                INSERT INTO DapStats (userID, daps_given, daps_received) VALUES (@dapperId, 0, 1)
+                INSERT INTO DapRecords (userID, DapsGiven, DapsReceived) VALUES (@dapperId, 0, 1)
                 ON CONFLICT(userID)
-                DO UPDATE SET daps_received = daps_received + 1
+                DO UPDATE SET DapsReceived = DapsReceived + 1
             ";
 
             command.ExecuteNonQuery();
 
-            string message = $"{args.ChatMessage.DisplayName}, you just dapped {receiverName} up {BotVariables.obtoocBri} You've dapped up {dapsGiven} homie{(dapsGiven != 1 ? "s" : "")}, and that's just beautiful.";
+            // Hugs and daps will function the same way
+            string message;
+
+            if (args.CommandText == "!hug")
+                message = $"{args.ChatMessage.DisplayName}, you just gave {receiverName} a big bear hug {BotVariables.obtoocBri} You've greeted {dapsGiven} homie{(dapsGiven != 1 ? "s" : "")}, and that's just beautiful.";
+            else
+                message = $"{args.ChatMessage.DisplayName}, you just dapped {receiverName} up {BotVariables.obtoocBri} You've greeted {dapsGiven} homie{(dapsGiven != 1 ? "s" : "")}, and that's just beautiful.";
+
             args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
@@ -408,14 +418,14 @@ namespace ooceBot.Commands
                 var command = args.Connection.CreateCommand();
                 command.Parameters.AddWithValue("@userId", args.ChatMessage.UserId);
 
-                command.CommandText = $"SELECT points_for_redemption FROM ChatterAttendance WHERE userID = @userId";
+                command.CommandText = $"SELECT PointsForRedemption FROM AttendanceRecords WHERE Id = @userId";
                 var attendancePoints = command.ExecuteScalar();
 
                 if (attendancePoints != null && (long)attendancePoints > reward.Cost)
                 {
                     var updatedPoints = (long)attendancePoints - reward.Cost;
 
-                    command.CommandText = $"UPDATE ChatterAttendance SET points_for_redemption = {updatedPoints} WHERE userID = @userId";
+                    command.CommandText = $"UPDATE AttendanceRecords SET PointsForRedemption = {updatedPoints} WHERE Id = @userId";
                     command.ExecuteNonQuery();
 
                     message = $"{args.ChatMessage.DisplayName}, you redeemed \"{reward.Title}\" for {reward.Cost} points. Your remaining total is {updatedPoints}. Thanks for hanging out in chat {BotVariables.obtoocBri}";
@@ -556,7 +566,7 @@ namespace ooceBot.Commands
             var command = args.Connection.CreateCommand();
             command.Parameters.AddWithValue("@userId", args.ChatMessage.UserId);
 
-            command.CommandText = $"SELECT total_tokens FROM ArcadeStats WHERE userID = @userId";
+            command.CommandText = $"SELECT TotalTokens FROM ArcadeRecords WHERE Id = @userId";
             var totalTokens = command.ExecuteScalar();
 
             string message = $"{args.ChatMessage.DisplayName}, you have {totalTokens} tokens {BotVariables.obtoocBri}";
@@ -570,7 +580,7 @@ namespace ooceBot.Commands
 
             var command = args.Connection.CreateCommand();
 
-            command.CommandText = $"SELECT Chatters.username, ArcadeStats.total_tokens FROM Chatters INNER JOIN ArcadeStats ON Chatters.userID = ArcadeStats.userID WHERE ArcadeStats.total_tokens > 0";
+            command.CommandText = $"SELECT Chatters.DisplayName, ArcadeRecords.TotalTokens FROM Chatters INNER JOIN ArcadeRecords ON Chatters.Id = ArcadeRecords.Id WHERE ArcadeRecords.TotalTokens > 0";
 
             // Todo: Figure out some way to possibly create a Twitch extension that I can use to show the top player leaderboard since Twitch does not allow for line breaks
             using (SqliteDataReader reader = command.ExecuteReader())
