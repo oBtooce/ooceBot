@@ -20,6 +20,7 @@ namespace ooceBot.SQL
             InitializeAttendanceTable(connection);
             InitializeWageringTable(connection);
             InitializeCommandUsageTable(connection);
+            InitializeDapStatsTable(connection);
 
             InitializeMiscellaneousTable(connection);
 
@@ -42,7 +43,9 @@ namespace ooceBot.SQL
                     username TEXT,
                     has_theme INTEGER NOT NULL DEFAULT 0,
                     has_chatted_this_stream INTEGER NOT NULL DEFAULT 0
-                )
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_username_lower ON Chatters (LOWER(username));
             ";
 
             command.ExecuteNonQuery();
@@ -121,6 +124,23 @@ namespace ooceBot.SQL
 
             // Reset command usage counts back to default
             command.CommandText = "UPDATE CommandUsage SET usage_count = 0";
+            command.ExecuteNonQuery();
+        }
+
+        public static void InitializeDapStatsTable(SqliteConnection connection)
+        {
+            var command = connection.CreateCommand();
+
+            // Table creation
+            command.CommandText = @"
+                CREATE TABLE IF NOT EXISTS DapStats (
+                    userID TEXT PRIMARY KEY,
+                    daps_given INTEGER NOT NULL DEFAULT 0,
+                    daps_received INTEGER NOT NULL DEFAULT 0,
+                    FOREIGN KEY (userID) REFERENCES Chatters (userID)
+                )
+            ";
+
             command.ExecuteNonQuery();
         }
 

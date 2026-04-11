@@ -95,6 +95,70 @@ namespace ooceBot.Commands
             args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
+        public static void Dap(CommandArgs args)
+        {
+            DBQueryMethods.VerifyExistenceInChattersTable(args.Connection, args.ChatMessage);
+
+            // Set up data for the chatter receiving the dap
+            string receiverName = args.CommandQuantifier;
+            string receiverId = string.Empty;
+
+            // Command 1: Verify that the specified chatter's name exists in the DB
+            var command = args.Connection.CreateCommand();
+            command.Parameters.AddWithValue("@receiverName", receiverName);
+            command.Parameters.AddWithValue("@dapperId", args.ChatMessage.UserId);
+
+            // The LOWER() calls are due to the fact that the DB holds chatter display names instead of usernames, which are all lowercase by design
+            command.CommandText = $"SELECT userID, username FROM Chatters WHERE LOWER(username) = LOWER(@receiverName)";
+
+            using var reader = command.ExecuteReader();
+
+            // If the chatter was not found, early exit, otherwise store the necessary values for said chatter
+            if (!reader.HasRows)
+            {
+                string errorMessage = $"Nobody by that name exists. Try again.";
+
+                args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(errorMessage) : errorMessage);
+
+                reader.Close();
+
+                return;
+            }
+
+            if (reader.Read())
+            {
+                receiverName = reader.GetString(1);
+                receiverId = reader.GetString(0);
+            }
+
+            reader.Close();
+
+            // Command 2: Increase daps given and store the total for later output
+            command.Parameters.AddWithValue("@receiverId", receiverId);
+
+            // Increase the dap counter for the giver and the receiver
+            command.CommandText = $@"
+                INSERT INTO DapStats (userID, daps_given, daps_received) VALUES (@dapperId, 1, 0)
+                ON CONFLICT(userID)
+                DO UPDATE SET daps_given = daps_given + 1 RETURNING daps_given
+            ";
+
+            int dapsGiven = Convert.ToInt32(command.ExecuteScalar());
+
+            // Command 3: Increase daps received for the selected chatter
+            command.CommandText = $@"
+                INSERT INTO DapStats (userID, daps_given, daps_received) VALUES (@dapperId, 0, 1)
+                ON CONFLICT(userID)
+                DO UPDATE SET daps_received = daps_received + 1
+            ";
+
+            command.ExecuteNonQuery();
+
+            string message = $"{args.ChatMessage.DisplayName}, you just dapped {receiverName} up {BotVariables.obtoocBri} You've dapped up {dapsGiven} homie{(dapsGiven != 1 ? "s" : "")}, and that's just beautiful.";
+
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+        }
+
         public static void Discord(CommandArgs args)
         {
             string message = $"oBtooce's Discord: {BotVariables.DiscordLink}";
@@ -201,6 +265,22 @@ namespace ooceBot.Commands
         public static void Lurk(CommandArgs args)
         {
             string message = $"{args.ChatMessage.DisplayName}, your continued support is greatly appreciated. Talk to you soon {BotVariables.obtoocBri}";
+
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+        }
+
+        public static void Personality(CommandArgs args)
+        {
+            int personality = args.Random.Next(13);
+
+            string message = $"{args.ChatMessage.DisplayName}, you've got a {personality}-inch...personality. {BotVariables.obtoocNice}";
+
+            message += personality switch
+            {
+                >= 8 => $" Your passion is so long {BotVariables.obtoocBri}",
+                >= 4 and <= 7 => $" Looks like you've got some drive {BotVariables.obtoocBri}",
+                <= 3 => $" They say it's how you use it, so...use it well {BotVariables.obtoocBri}"
+            };
 
             args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }

@@ -102,22 +102,24 @@ namespace ooceBot
         };
 
         public static Dictionary<string, Command> CommandsList { get; set; } = new Dictionary<string, Command>()
-        {            
+        {
             { "!addquote", CommandMethods.AddQuote },
             { "!audit", CommandMethods.Audit },
             { "!bird", CommandMethods.Bird },
             { "!boner", CommandMethods.Boner },
             { "!buyin", CommandMethods.BuyIn },
             { "!croissant", CommandMethods.Croissant },
+            { "!dap", CommandMethods.Dap },
             { "!dc", CommandMethods.Discord },
             { "!discord", CommandMethods.Discord },
             { "!emotes", CommandMethods.Emotes },
             { "!finecheddar", CommandMethods.FineCheddar },
-            { "!groove", CommandMethods.Groove },            
+            { "!groove", CommandMethods.Groove },
             { "!help", CommandMethods.Help },
             { "!here", CommandMethods.Here },
             { "!jacob", CommandMethods.Jacob },
             { "!lurk", CommandMethods.Lurk },
+            { "!p", CommandMethods.Personality },
             { "!play", CommandMethods.Play },
             { "!quote", CommandMethods.Quote },
             { "!randomquote", CommandMethods.RandomQuote },
