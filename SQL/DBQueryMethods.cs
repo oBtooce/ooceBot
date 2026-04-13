@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.Sqlite;
+using ooceBot.Models;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -6,6 +7,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TwitchLib.Api.Core.Models.Undocumented.Chatters;
 using TwitchLib.Client.Models;
 
 namespace ooceBot.SQL
@@ -35,25 +37,24 @@ namespace ooceBot.SQL
         /// <param name="username">The chatter's username</param>
         public static void VerifyExistenceInChattersTable(SqliteConnection connection, ChatMessage message)
         {
-            connection.Open();
+            var existingChatter = Program.dbContext.Chatters.FirstOrDefault(chatter => chatter.Id == message.UserId);
 
-            var command = connection.CreateCommand();
-            command.Parameters.AddWithValue("@chatter", message.DisplayName);
-            command.Parameters.AddWithValue("@chatterid", message.UserId);
-
-            command.CommandText = "SELECT * FROM Chatters WHERE Id = @chatterid OR DisplayName = @chatter LIMIT 1";
-
-            // If no user was found for either the submitted ID and username, make a new record
-            if (command.ExecuteScalar() == null)
+            // Update any name changes that may have happened
+            if (existingChatter != null)
             {
-                command.CommandText = "INSERT INTO Chatters (Id, DisplayName) VALUES (@chatterid, @chatter)";
-                command.ExecuteNonQuery();
+                existingChatter.DisplayName = message.DisplayName;
             }
-            else // Perform an update on the found record
+            else
             {
-                command.CommandText = "UPDATE Chatters SET Id = @chatterid, DisplayName = @chatter WHERE Id = @chatterid OR DisplayName = @chatter";
-                command.ExecuteNonQuery();
+                var newChatter = new Chatter
+                {
+                    Id = message.Id,
+                    DisplayName = message.DisplayName
+                };
+                Program.dbContext.Chatters.Add(newChatter);
             }
+
+            Program.dbContext.SaveChanges();
         }
 
         public static void UpdateChatterDataPlusMaybeTheme(SqliteConnection connection, ChatMessage message)

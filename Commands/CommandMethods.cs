@@ -112,63 +112,31 @@ namespace ooceBot.Commands
             string receiverName = args.CommandQuantifier.TrimStart('@');
             string receiverId = string.Empty;
 
-            // Command 1: Verify that the specified chatter's name exists in the DB
-            var command = args.Connection.CreateCommand();
-            command.Parameters.AddWithValue("@receiverName", receiverName);
-            command.Parameters.AddWithValue("@dapperId", args.ChatMessage.UserId);
-
-            // The LOWER() calls are due to the fact that the DB holds chatter display names instead of usernames, which are all lowercase by design
-            command.CommandText = $"SELECT Id, DisplayName FROM Chatters WHERE LOWER(DisplayName) = LOWER(@receiverName)";
-
-            using var reader = command.ExecuteReader();
+            var receivingChatter = args.Context.Chatters.Where(dude => dude.DisplayName.ToLower() == receiverName.ToLower()).FirstOrDefault();
 
             // If the chatter was not found, early exit, otherwise store the necessary values for said chatter
-            if (!reader.HasRows)
+            if (receivingChatter == null)
             {
                 string errorMessage = $"Nobody by that name exists. Try again.";
                 args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(errorMessage) : errorMessage);
-
-                reader.Close();
-
                 return;
             }
 
-            if (reader.Read())
-            {
-                receiverName = reader.GetString(1);
-                receiverId = reader.GetString(0);
-            }
+            var dapperData = args.Context.DapRecords.First(dap => dap.Id == args.ChatMessage.UserId);
+            var receiverData = args.Context.DapRecords.First(dap => dap.Id == receivingChatter.Id);
 
-            reader.Close();
+            dapperData.DapsGiven++;
+            receiverData.DapsReceived++;
 
-            // Command 2: Increase daps given and store the total for later output
-            command.Parameters.AddWithValue("@receiverId", receiverId);
-
-            // Increase the dap counter for the giver and the receiver
-            command.CommandText = $@"
-                INSERT INTO DapRecords (Id, DapsGiven, DapsReceived) VALUES (@dapperId, 1, 0)
-                ON CONFLICT(Id)
-                DO UPDATE SET DapsGiven = DapsGiven + 1 RETURNING DapsGiven
-            ";
-
-            int dapsGiven = Convert.ToInt32(command.ExecuteScalar());
-
-            // Command 3: Increase daps received for the selected chatter
-            command.CommandText = $@"
-                INSERT INTO DapRecords (userID, DapsGiven, DapsReceived) VALUES (@dapperId, 0, 1)
-                ON CONFLICT(userID)
-                DO UPDATE SET DapsReceived = DapsReceived + 1
-            ";
-
-            command.ExecuteNonQuery();
+            args.Context.SaveChanges();
 
             // Hugs and daps will function the same way
             string message;
 
             if (args.CommandText == "!hug")
-                message = $"{args.ChatMessage.DisplayName}, you just gave {receiverName} a big bear hug {BotVariables.obtoocBri} You've greeted {dapsGiven} homie{(dapsGiven != 1 ? "s" : "")}, and that's just beautiful.";
+                message = $"{args.ChatMessage.DisplayName}, you just gave {receiverName} a big bear hug {BotVariables.obtoocBri} You've greeted {dapperData.DapsGiven} homie{(dapperData.DapsGiven != 1 ? "s" : "")}, and that's just beautiful.";
             else
-                message = $"{args.ChatMessage.DisplayName}, you just dapped {receiverName} up {BotVariables.obtoocBri} You've greeted {dapsGiven} homie{(dapsGiven != 1 ? "s" : "")}, and that's just beautiful.";
+                message = $"{args.ChatMessage.DisplayName}, you just dapped {receiverName} up {BotVariables.obtoocBri} You've greeted {dapperData.DapsGiven} homie{(dapperData.DapsGiven != 1 ? "s" : "")}, and that's just beautiful.";
 
             args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
@@ -293,8 +261,11 @@ namespace ooceBot.Commands
         public static void Play(CommandArgs args)
         {
             string message;
+
             // Make sure that the user exists before doing anything
-            if (!ArcadeMethods.CheckForPlayer(args.Connection, args.ChatMessage.UserId))
+            var player = args.Context.ArcadeRecords.FirstOrDefault(record => record.Id == args.ChatMessage.UserId);
+
+            if (player is null)
             {
                 message = $"Looks like this is your first time at the arcade. Type !buyin to get your first set of tokens {BotVariables.obtoocBri}";
                 args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
@@ -412,30 +383,35 @@ namespace ooceBot.Commands
         {
             string message;
 
+            // Check if the chatter has actually done attendance yet
+            var chatterAttendance = args.Context.AttendanceRecords.FirstOrDefault(record => record.Id == args.ChatMessage.UserId);
+
+            if (chatterAttendance == null)
+            {
+                message = $"You haven't even gone to class once...{BotVariables.obtoocOmg} Type !here to start your journey {BotVariables.obtoocBri}";
+                args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+
+                return;
+            }
+
             // Three things to check: there is text; the text translates to a number; and the number is found within the dictionary
             if (!string.IsNullOrEmpty(args.CommandQuantifier) && int.TryParse(args.CommandQuantifier, out int key) && BotVariables.CustomRewards.TryGetValue(key, out CustomReward reward))
             {
-                var command = args.Connection.CreateCommand();
-                command.Parameters.AddWithValue("@userId", args.ChatMessage.UserId);
+                long redemptionPoints = chatterAttendance.PointsForRedemption;
 
-                command.CommandText = $"SELECT PointsForRedemption FROM AttendanceRecords WHERE Id = @userId";
-                var attendancePoints = command.ExecuteScalar();
-
-                if (attendancePoints != null && (long)attendancePoints > reward.Cost)
+                if (redemptionPoints > reward.Cost)
                 {
-                    var updatedPoints = (long)attendancePoints - reward.Cost;
+                    chatterAttendance.PointsForRedemption -= reward.Cost;
+                    args.Context.SaveChanges();
 
-                    command.CommandText = $"UPDATE AttendanceRecords SET PointsForRedemption = {updatedPoints} WHERE Id = @userId";
-                    command.ExecuteNonQuery();
-
-                    message = $"{args.ChatMessage.DisplayName}, you redeemed \"{reward.Title}\" for {reward.Cost} points. Your remaining total is {updatedPoints}. Thanks for hanging out in chat {BotVariables.obtoocBri}";
+                    message = $"{args.ChatMessage.DisplayName}, you redeemed \"{reward.Title}\" for {reward.Cost} points. Your remaining total is {chatterAttendance.PointsForRedemption}. Thanks for hanging out in chat {BotVariables.obtoocBri}";
                     args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
                 }
                 else
                 {
-                    message = $"{args.ChatMessage.DisplayName}, you do not have enough points to afford that reward. Pick something else {BotVariables.obtoocBri}";
+                    message = $"{args.ChatMessage.DisplayName}, with a total of {redemptionPoints} points, you do not have enough to afford that reward. Pick something else {BotVariables.obtoocBri}";
                     args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
-                }
+                }                
             }
             else
             {
@@ -563,14 +539,20 @@ namespace ooceBot.Commands
 
         public static void Tokens(CommandArgs args)
         {
-            var command = args.Connection.CreateCommand();
-            command.Parameters.AddWithValue("@userId", args.ChatMessage.UserId);
+            string message;
 
-            command.CommandText = $"SELECT TotalTokens FROM ArcadeRecords WHERE Id = @userId";
-            var totalTokens = command.ExecuteScalar();
+            var arcadeRecord = args.Context.ArcadeRecords.FirstOrDefault(record => record.Id == args.ChatMessage.UserId);
 
-            string message = $"{args.ChatMessage.DisplayName}, you have {totalTokens} tokens {BotVariables.obtoocBri}";
-            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+            if (arcadeRecord is not null)
+            {
+                message = $"{args.ChatMessage.DisplayName}, you have {arcadeRecord.TotalTokens} tokens {BotVariables.obtoocBri}";
+                args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+            }
+            else
+            {
+                message = $"To participate in the arcade, type !buyin to get your first 100 tokens {BotVariables.obtoocBri}";
+                args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+            }
         }
 
         public static void TopPlayers(CommandArgs args)
