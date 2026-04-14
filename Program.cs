@@ -35,9 +35,6 @@ class Program
         // Create all tables that can be used through Twitch chat
         TableSQLMethods.InitializeAllTables(Connection);
 
-        // Set up the command usage table
-        DBQueryMethods.PopulateCommandUsageTable(Connection, BotVariables.VideoCommands);
-
         // Set access tokens for Nightbot and Twitch
         //await NighbotOAuthManager.SetNightbotOAuthToken();
         await TwitchOAuthManager.SetTwitchOAuthToken();
@@ -72,9 +69,9 @@ class Program
 
     private static async void Client_OnMessageReceived(object sender, OnMessageReceivedArgs e)
     {
-        DBQueryMethods.UpdateChatterDataPlusMaybeTheme(Connection, e.ChatMessage);
-
         string[] messageParts = e.ChatMessage.Message.Split(new char[] { ' ' }, 2);
+
+        DBQueryMethods.UpdateChatterDataPlusMaybeTheme(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, _twitchApi, messageParts.First(), string.Empty, dbContext));
 
         // Open new connection
         Connection.Open();

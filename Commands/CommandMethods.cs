@@ -1,6 +1,6 @@
 ﻿using Microsoft.Data.Sqlite;
 using OBSWebsocketDotNet;
-using ooceBot.Attendance;
+using ooceBot.AttendanceLogic;
 using ooceBot.AudioVideo;
 using ooceBot.Authorization;
 using ooceBot.Functionality;
@@ -88,7 +88,6 @@ namespace ooceBot.Commands
         public static void BuyIn(CommandArgs args)
         {
             //Add new user or ignore if ID is already present
-            DBQueryMethods.VerifyExistenceInChattersTable(args.Connection, args.ChatMessage);
             ArcadeMethods.SetupPlayer(args.Connection, args.ChatMessage.UserId);
 
             // Check balances for player and provide tokens if balance is empty
@@ -106,8 +105,6 @@ namespace ooceBot.Commands
 
         public static void Dap(CommandArgs args)
         {
-            DBQueryMethods.VerifyExistenceInChattersTable(args.Connection, args.ChatMessage);
-
             // Set up data for the chatter receiving the dap
             string receiverName = args.CommandQuantifier.TrimStart('@');
             string receiverId = string.Empty;

@@ -18,6 +18,6 @@ namespace ooceBot.Models
 
         public int PointsForRedemption { get; set; }
 
-        public DateOnly LastPresentDate { get; set; }
+        public DateOnly? LastPresentDate { get; set; }
     }
 }

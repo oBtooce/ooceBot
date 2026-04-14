@@ -63,7 +63,7 @@ namespace ooceBot.SQL
             command.CommandText = @"
                 CREATE TABLE IF NOT EXISTS AttendanceRecords (
                     Id TEXT PRIMARY KEY,
-                    AttendanceCount INTEGER DEFAULT 0,
+                    AttendanceCount INTEGER NOT NULL DEFAULT 0,
                     TotalAttendance INTEGER NOT NULL DEFAULT 0,
                     IsPresent INTEGER NOT NULL DEFAULT 0,
                     LastPresentDate TEXT DEFAULT NULL,
