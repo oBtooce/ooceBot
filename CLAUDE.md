@@ -57,7 +57,7 @@ Commands are routed via four static `Dictionary<string, Action<CommandArgs>>` in
 
 Four tables initialized at startup via `SQL/TableSQLMethods.cs`:
 - **Chatters** — Id, DisplayName, HasTheme, HasChattedThisStream
-- **Attendance** — AttendanceCount, TotalAttendance, IsPresent, PointsForRedemption
+- **Attendance** — AttendanceCount, TotalAttendance, PointsForRedemption
 - **ArcadeRecords** — wagering history, token balance, streaks
 - **CommandUsage** — per-command usage counts
 

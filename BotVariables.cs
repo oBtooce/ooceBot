@@ -34,7 +34,7 @@ namespace ooceBot
 
         public static Dictionary<int, CustomReward> CustomRewards { get; set; } = new Dictionary<int, CustomReward>();
 
-        public static string StreamStartTime { get; set; } = string.Empty;
+        public static DateOnly StreamStartTime { get; set; }
 
         #endregion
 

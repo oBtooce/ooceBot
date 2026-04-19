@@ -51,8 +51,8 @@ namespace ooceBot.AttendanceLogic
 
             if (attendanceRecord is not null)
             {
-                // Jump out if attendance was already taken (check for command used, then check for date matching)
-                if (attendanceRecord.IsPresent == true || (attendanceRecord.LastPresentDate is not null && attendanceRecord.LastPresentDate.Value.ToString("yyyy-MM-dd") == BotVariables.StreamStartTime))
+                // If there is a value in the DB and said value is the same as the current stream start time, prevent attendance
+                if (attendanceRecord.DateOfAttendance == BotVariables.StreamStartTime)
                 {
                     message = $"Your attendance has already been taken. Check in next time {BotVariables.obtoocBri}";
                     args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
@@ -62,8 +62,7 @@ namespace ooceBot.AttendanceLogic
                 // Update all relevant values
                 attendanceRecord.AttendanceCount++;
                 attendanceRecord.TotalAttendance++;
-                attendanceRecord.IsPresent = true;
-                attendanceRecord.LastPresentDate = DateOnly.FromDateTime(DateTimeOffset.Now.DateTime);
+                attendanceRecord.DateOfAttendance = BotVariables.StreamStartTime;
 
                 // If the tenth day has been reached, reward accordingly!
                 if (attendanceRecord.AttendanceCount % 10 == 0)
@@ -86,9 +85,8 @@ namespace ooceBot.AttendanceLogic
                     Id = args.ChatMessage.UserId,
                     AttendanceCount = 1,
                     TotalAttendance = 1,
-                    IsPresent = true,
                     PointsForRedemption = 0,
-                    LastPresentDate = DateOnly.FromDateTime(DateTimeOffset.Now.DateTime)
+                    DateOfAttendance = BotVariables.StreamStartTime
                 };
 
                 message = $"{args.ChatMessage.DisplayName}, your attendance journey has begun! Let's see what happens when you reach 10 days {BotVariables.obtoocBri}";

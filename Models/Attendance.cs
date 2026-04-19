@@ -14,10 +14,8 @@ namespace ooceBot.Models
 
         public int TotalAttendance { get; set; }
 
-        public bool IsPresent { get; set; }
-
         public int PointsForRedemption { get; set; }
 
-        public DateOnly? LastPresentDate { get; set; }
+        public DateOnly DateOfAttendance { get; set; }
     }
 }

@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TwitchLib.Client;
-using Zalgo;
 
 namespace ooceBot.Timers
 {
@@ -18,13 +17,8 @@ namespace ooceBot.Timers
 
         private static List<string> MessagesToDisplay = new List<string>
         {
-            "Remember to file your taxes.",
-            "BOO! Gotcha nerd",
-            $"Typing !here will take your attendance. If you report in enough times, you get rewards{BotVariables.obtoocBri}",
+            $"Typing !here will take your attendance. If you report in enough times, you get rewards {BotVariables.obtoocBri}",
             $"Twitch Prime subscriptions are greatly appreciated {BotVariables.obtoocBri}",
-            "Follow this channel to support local businesses.",
-            "ʕ•ᴥ•ʔ",
-            new ZalgoString("AHAHAHAHAHAHAHAHAHAHAHA", FuckUpMode.Max, FuckUpPosition.All).ToString(),
             $"Type !stats (username) to see someone's chess.com ratings {BotVariables.obtoocBri}",
             "Check out oBtooce's socials: https://linktr.ee/obtooce",
             "Song requests (!sr song-title-or-yt-link)",

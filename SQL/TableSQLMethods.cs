@@ -65,17 +65,12 @@ namespace ooceBot.SQL
                     Id TEXT PRIMARY KEY,
                     AttendanceCount INTEGER NOT NULL DEFAULT 0,
                     TotalAttendance INTEGER NOT NULL DEFAULT 0,
-                    IsPresent INTEGER NOT NULL DEFAULT 0,
                     LastPresentDate TEXT DEFAULT NULL,
                     PointsForRedemption INTEGER NOT NULL DEFAULT 0,
                     FOREIGN KEY (Id) REFERENCES Chatters(Id)
                 )
             ";
 
-            command.ExecuteNonQuery();
-
-            // Attendance is reset for the day
-            command.CommandText = "UPDATE AttendanceRecords SET IsPresent = 0";
             command.ExecuteNonQuery();
         }
 
