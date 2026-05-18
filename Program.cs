@@ -35,10 +35,6 @@ class Program
         // Create all tables that can be used through Twitch chat
         TableSQLMethods.InitializeAllTables(Connection);
 
-        // Set access tokens for Nightbot and Twitch
-        //await NighbotOAuthManager.SetNightbotOAuthToken();
-        await TwitchOAuthManager.SetTwitchOAuthToken();
-
         NightbotSongRequestClient = Startup.SetupNightbotClient();
         Client = Startup.SetupTwitchClient();
 

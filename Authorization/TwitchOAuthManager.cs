@@ -10,7 +10,7 @@ namespace ooceBot.Authorization
 {
     public static class TwitchOAuthManager
     {
-        public static async Task SetTwitchOAuthToken()
+        public static async Task SetBotOAuthToken()
         {
             HttpClient TwitchApiCallClient = new HttpClient()
             {
@@ -19,7 +19,7 @@ namespace ooceBot.Authorization
 
             // Start out with a newly refreshed token and assign the resulting value to the property in BotVariables for later
             var twitchOAuthToken = await RefreshTwitchOAuthToken(TwitchApiCallClient);
-            BotVariables.TwitchOAuthToken = twitchOAuthToken;
+            BotVariables.BotOAuthToken = twitchOAuthToken;
         }
 
         private static async Task<string> RefreshTwitchOAuthToken(HttpClient client)
@@ -30,7 +30,7 @@ namespace ooceBot.Authorization
                 { "client_id", ConfigurationManager.AppSettings["TwitchClientID"]! },
                 { "client_secret", ConfigurationManager.AppSettings["TwitchClientSecret"]! },
                 { "grant_type", "refresh_token" },
-                { "refresh_token", ConfigurationManager.AppSettings["TwitchOAuthRefreshToken"]! }
+                { "refresh_token", ConfigurationManager.AppSettings["TwitchBroadcasterOAuthRefreshToken"]! }
             };
 
             HttpContent requestContent = new FormUrlEncodedContent(formData);

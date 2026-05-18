@@ -10,12 +10,12 @@ namespace ooceBot.Models
     {
         public string Id { get; set; }
 
-        public int AttendanceCount { get; set; }
+        public int? AttendanceCount { get; set; }
 
-        public int TotalAttendance { get; set; }
+        public int? TotalAttendance { get; set; }
 
-        public int PointsForRedemption { get; set; }
+        public long? PointsForRedemption { get; set; }
 
-        public DateOnly DateOfAttendance { get; set; }
+        public DateOnly? DateOfAttendance { get; set; }
     }
 }

@@ -119,11 +119,36 @@ namespace ooceBot.Commands
                 return;
             }
 
-            var dapperData = args.Context.DapRecords.First(dap => dap.Id == args.ChatMessage.UserId);
-            var receiverData = args.Context.DapRecords.First(dap => dap.Id == receivingChatter.Id);
+            var dapperData = args.Context.DapRecords.FirstOrDefault(dap => dap.Id == args.ChatMessage.UserId);
+            var receiverData = args.Context.DapRecords.FirstOrDefault(dap => dap.Id == receivingChatter.Id);
 
-            dapperData.DapsGiven++;
-            receiverData.DapsReceived++;
+            if (dapperData == null)
+            {
+                dapperData = new DapStats
+                {
+                    Id = args.ChatMessage.UserId,
+                    DapsGiven = 1,
+                    DapsReceived = 0
+                };
+
+                args.Context.DapRecords.Add(dapperData);
+            }
+            else
+                dapperData.DapsGiven++;
+
+            if (receiverData == null)
+            {
+                receiverData = new DapStats
+                {
+                    Id = receivingChatter.Id,
+                    DapsGiven = 0,
+                    DapsReceived = 1
+                };
+
+                args.Context.DapRecords.Add(receiverData);
+            }
+            else
+                receiverData.DapsReceived++;
 
             args.Context.SaveChanges();
 
@@ -147,6 +172,12 @@ namespace ooceBot.Commands
         public static void Emotes(CommandArgs args)
         {
             string message = $"Follower emotes: {BotVariables.obtoocBri} {BotVariables.obtoocF} {BotVariables.obtoocW} {BotVariables.obtoocNice} {BotVariables.obtoocOmg}";
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+        }
+
+        public static void Event(CommandArgs args)
+        {
+            string message = $"Boards of Canada Discography Listen-Along + New Album Reaction - May 29 @ 7 PM EST (Join the DC: {BotVariables.DiscordLink})";
             args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
@@ -180,6 +211,12 @@ namespace ooceBot.Commands
             //}
             //else
             //    args.Client.SendMessage(args.ChatMessage.Channel, "Sorry baby, it looks like you ain't got the dancin' fever. Show some more passion to get your one-way ticket to Melody Town, ya dig?");
+        }
+
+        public static void Haiku(CommandArgs args)
+        {
+            string message = HaikuFunctionality.GenerateHaiku();
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
         public static void Help(CommandArgs args)
@@ -394,7 +431,7 @@ namespace ooceBot.Commands
             // Three things to check: there is text; the text translates to a number; and the number is found within the dictionary
             if (!string.IsNullOrEmpty(args.CommandQuantifier) && int.TryParse(args.CommandQuantifier, out int key) && BotVariables.CustomRewards.TryGetValue(key, out CustomReward reward))
             {
-                long redemptionPoints = chatterAttendance.PointsForRedemption;
+                long redemptionPoints = chatterAttendance.PointsForRedemption.Value;
 
                 if (redemptionPoints > reward.Cost)
                 {

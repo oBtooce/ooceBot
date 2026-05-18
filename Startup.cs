@@ -29,10 +29,14 @@ namespace ooceBot
             return client;
         }
 
+        /// <summary>
+        /// Sets up the TwitchClient object using information attached to the streamer bot.
+        /// </summary>
+        /// <returns></returns>
         public static TwitchClient SetupTwitchClient()
         {
             // Set up client
-            ConnectionCredentials credentials = new ConnectionCredentials(BotVariables.BotUsername, BotVariables.TwitchOAuthToken);
+            ConnectionCredentials credentials = new ConnectionCredentials(BotVariables.BotUsername, ConfigurationManager.AppSettings["TwitchBotAccessToken"]);
             var clientOptions = new ClientOptions
             {
                 MessagesAllowedInPeriod = 750,

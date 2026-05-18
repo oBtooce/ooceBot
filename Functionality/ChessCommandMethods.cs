@@ -116,7 +116,7 @@ namespace ooceBot.Functionality
                         if (root.TryGetProperty("chess_blitz", out JsonElement blitz) == true)
                             stats.Add("Blitz", root.GetProperty("chess_blitz").GetProperty("last").GetProperty("rating").ToString());
 
-                        if (root.TryGetProperty("chess_blitz", out JsonElement bullet) == true)
+                        if (root.TryGetProperty("chess_bullet", out JsonElement bullet) == true)
                             stats.Add("Bullet", root.GetProperty("chess_bullet").GetProperty("last").GetProperty("rating").ToString());
 
                         // Make sure that there is something to return here
