@@ -123,6 +123,7 @@ namespace ooceBot
             { "!emotes", CommandMethods.Emotes },
             { "!event", CommandMethods.Event },
             { "!finecheddar", CommandMethods.FineCheddar },
+            { "!followage", CommandMethods.FollowAge },
             { "!groove", CommandMethods.Groove },
             { "!haiku", CommandMethods.Haiku },
             { "!help", CommandMethods.Help },

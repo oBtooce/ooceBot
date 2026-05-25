@@ -183,6 +183,24 @@ namespace ooceBot.Commands
             args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
+        public static async void FollowAge(CommandArgs args)
+        {
+            string message;
+            try
+            {
+                TimeSpan followerAge = await TwitchAPIMethods.GetFollowAgeStatsForChatter(args.ChatMessage.UserId);
+                FollowAgeData data = TwitchAPIMethods.FormatFollowAgeData(followerAge);
+
+                message = $"{args.ChatMessage.DisplayName}, you have been following for {data.TotalYears} years and {data.TotalDays} days {BotVariables.obtoocBri}";
+            }
+            catch (Exception e)
+            {
+                message = e.Message;
+            }
+
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+        }
+
         public static async void Groove(CommandArgs args)
         {
             //if (args.ChatMessage.IsVip || args.ChatMessage.IsSubscriber || args.ChatMessage.IsModerator || args.ChatMessage.IsBroadcaster)
