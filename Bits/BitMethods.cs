@@ -41,7 +41,7 @@ namespace ooceBot.Bits
             switch (message.Bits)
             {
                 case 100:
-                    GiveOutAGoldStar(nightbotClient);
+                    await GiveOutAGoldStar(nightbotClient);
                     break;
                 case 250:
                     DecreeQueue.Enqueue(message);
@@ -58,13 +58,16 @@ namespace ooceBot.Bits
                 default:
                     break;
             }
+
+            // Handle any TTS stuff here
+
         }
 
         /// <summary>
         /// A very cool star is handed out to the goodest chatter for a single dollar! Wow!
         /// </summary>
         /// <param name="nightbotClient">A Nightbot client instance</param>
-        private static async void GiveOutAGoldStar(HttpClient nightbotClient)
+        private static async Task GiveOutAGoldStar(HttpClient nightbotClient)
         {
             OBSWebsocket websocket = await OBSManager.ConnectToOBSWebsocket();
 

@@ -103,12 +103,18 @@ namespace ooceBot
             { "!title", AdminCommandMethods.Title },
         };
 
+        public static Dictionary<string, Command> ChatterCommands { get; set; } = new Dictionary<string, Command>()
+        {
+            { "!boner", ChatterCommandMethods.Boner },
+            { "!jacob", ChatterCommandMethods.Jacob },
+            { "!tarf", ChatterCommandMethods.Tarf },
+        };
+
         public static Dictionary<string, Command> CommandsList { get; set; } = new Dictionary<string, Command>()
         {
             { "!addquote", CommandMethods.AddQuote },
             { "!audit", CommandMethods.Audit },
-            { "!bird", CommandMethods.Bird },
-            { "!boner", CommandMethods.Boner },
+            { "!bird", CommandMethods.Bird },            
             { "!buyin", CommandMethods.BuyIn },
             { "!croissant", CommandMethods.Croissant },
             { "!dap", CommandMethods.Dap },
@@ -121,8 +127,7 @@ namespace ooceBot
             { "!haiku", CommandMethods.Haiku },
             { "!help", CommandMethods.Help },
             { "!here", CommandMethods.Here },
-            { "!hug", CommandMethods.Dap },
-            { "!jacob", CommandMethods.Jacob },
+            { "!hug", CommandMethods.Dap },            
             { "!lurk", CommandMethods.Lurk },
             { "!p", CommandMethods.Personality },
             { "!play", CommandMethods.Play },
@@ -139,7 +144,6 @@ namespace ooceBot
             { "!stats", CommandMethods.Stats },
             { "!steam", CommandMethods.Steam },
             { "!store", CommandMethods.Store },
-            { "!tarf", CommandMethods.Tarf },
             { "!tokens", CommandMethods.Tokens },
             { "!top10", CommandMethods.TopPlayers },
             { "!twitter", CommandMethods.Twitter },

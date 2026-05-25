@@ -53,16 +53,6 @@ namespace ooceBot.Commands
                 string message = $"Hmm...something went wrong. Make sure you are using a valid username and try again with the following format: !audit (username)";
                 args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
             }
-        }        
-
-        public static void Based(CommandArgs args)
-        {
-            args.Client.SendMessage(args.ChatMessage.Channel, @"    ____                      __
-   / __ )____ _________  ____/ /
-  / __  / __ `/ ___/ _ \/ __  / 
- / /_/ / /_/ (__  )  __/ /_/ /  
-/_____/\__,_/____/\___/\__,_/   
-                                ");
         }
 
         public static void Bird(CommandArgs args)
@@ -262,12 +252,6 @@ namespace ooceBot.Commands
                 AttendanceMethods.TakeAttendance(args);
             else
                 AttendanceMethods.ProvideAttendanceInfo(args);
-        }
-
-        public static void Jacob(CommandArgs args)
-        {
-            string message = $"Blackjack";
-            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
         public static void Lurk(CommandArgs args)
@@ -562,12 +546,6 @@ namespace ooceBot.Commands
         public static void Store(CommandArgs args)
         {
             string message = $"Nothing at the store yet. Stay tuned {BotVariables.obtoocBri}";
-            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
-        }
-
-        public static void Tarf(CommandArgs args)
-        {
-            string message = $"you gotta be bad, you gotta be bold, you gotta be wiser, you gotta be hard, you gotta be tough, you gotta be stronger, you gotta be cool, you gotta be calm, you gotta stay together, all i know love will save the day - corrected";
             args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 

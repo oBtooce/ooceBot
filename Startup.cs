@@ -5,6 +5,7 @@ using System.Configuration;
 using System.Linq;
 using System.Net.Http.Json;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using TwitchLib.Api;
 using TwitchLib.Client;
@@ -17,6 +18,37 @@ namespace ooceBot
 {
     public static class Startup
     {
+        /// <summary>
+        /// Create and store a new Twitch access token on app startup for use in API calls
+        /// </summary>
+        /// <returns></returns>
+        public static async Task InitializeBroadcasterAccessToken()
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                var content = new FormUrlEncodedContent(new Dictionary<string, string>
+                {
+                    { "client_id", ConfigurationManager.AppSettings["TwitchClientID"]! },
+                    { "client_secret", ConfigurationManager.AppSettings["TwitchClientSecret"]! },
+                    { "grant_type", "refresh_token" },
+                    { "refresh_token", ConfigurationManager.AppSettings["TwitchBroadcasterOAuthRefreshToken"]! },
+                });
+
+                var response = await client.PostAsync(ConfigurationManager.AppSettings["TwitchOAuthRefreshUri"]!, content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var responseContent = JsonSerializer.Deserialize<TwitchTokenResponse>(json);
+
+                    if (responseContent != null)
+                        ConfigurationManager.AppSettings.Set("TwitchBroadcasterAccessToken", responseContent.AccessToken);
+                }
+                else
+                    Console.WriteLine("The Twitch OAuth access token could not be refreshed.");
+            }
+        }
+
         public static HttpClient SetupNightbotClient()
         {
             HttpClient client = new HttpClient()
@@ -56,6 +88,7 @@ namespace ooceBot
             var users = await api.Helix.Users.GetUsersAsync(logins: new List<string> { BotVariables.ChannelToJoin });
             BotVariables.BroadcasterID = users.Users[0].Id;
 
+            // Figure out current stream data to set timestamp for attendance
             var currentStream = await api.Helix.Streams.GetStreamsAsync(userLogins: new List<string> { BotVariables.ChannelToJoin });
 
             if (currentStream.Streams.Length > 0)

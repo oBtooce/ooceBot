@@ -26,7 +26,7 @@ class Program
 
     public static SqliteConnection Connection { get; set; } = new SqliteConnection("Data Source=TwitchStats.db");
 
-    public static TwitchAPI _twitchApi = new TwitchAPI(settings: new ApiSettings { ClientId = ConfigurationManager.AppSettings["TwitchClientID"], AccessToken = ConfigurationManager.AppSettings["TwitchBroadcasterAccessToken"] });
+    public static TwitchAPI Api { get; set; } = new TwitchAPI();
 
     public static TwitchBotContext dbContext = new TwitchBotContext();
 
@@ -37,9 +37,11 @@ class Program
 
         NightbotSongRequestClient = Startup.SetupNightbotClient();
         Client = Startup.SetupTwitchClient();
+        await Startup.InitializeBroadcasterAccessToken();
+        Api = new TwitchAPI(settings: new ApiSettings { ClientId = ConfigurationManager.AppSettings["TwitchClientID"], AccessToken = ConfigurationManager.AppSettings["TwitchBroadcasterAccessToken"] });
 
         // Set up all variables that require Twitch Helix
-        Startup.UpdateHelixVariables(_twitchApi);
+        Startup.UpdateHelixVariables(Api);
 
         Client.OnConnected += Client_OnConnected;
         Client.OnMessageReceived += Client_OnMessageReceived;
@@ -51,7 +53,7 @@ class Program
 
         Client.Connect();
 
-        await EventSubWebsocketManager.SetupEventSub(NightbotSongRequestClient, _twitchApi);
+        await EventSubWebsocketManager.SetupEventSub(NightbotSongRequestClient, Api);
 
         Console.ReadLine();
     }
@@ -67,7 +69,7 @@ class Program
     {
         string[] messageParts = e.ChatMessage.Message.Split(new char[] { ' ' }, 2);
 
-        DBQueryMethods.UpdateChatterDataPlusMaybeTheme(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, _twitchApi, messageParts.First(), string.Empty, dbContext));
+        DBQueryMethods.UpdateChatterDataPlusMaybeTheme(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, Api, messageParts.First(), string.Empty, dbContext));
 
         // Open new connection
         Connection.Open();
@@ -79,10 +81,10 @@ class Program
             BitMethods.HandleBitsMessage(Client, e.ChatMessage, NightbotSongRequestClient);
         else if (BotVariables.CommandsList.TryGetValue(messageParts.First().ToLower(), out BotVariables.Command command) || BotVariables.AdminCommands.TryGetValue(messageParts.First().ToLower(), out command))
             if (messageParts.Length == 1)
-                command(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, _twitchApi, messageParts.First(), string.Empty, dbContext));
+                command(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, Api, messageParts.First(), string.Empty, dbContext));
             else
-                command(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, _twitchApi, messageParts.First(), messageParts.Last(), dbContext));
+                command(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, Api, messageParts.First(), messageParts.Last(), dbContext));
         else if (BotVariables.VideoCommands.TryGetValue(messageParts.First().ToLower(), out command) || BotVariables.WordCommands.TryGetValue(messageParts.First().ToLower(), out command))
-            command(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, _twitchApi, messageParts.First(), string.Empty, dbContext));
+            command(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, Api, messageParts.First(), string.Empty, dbContext));
     }
 }
