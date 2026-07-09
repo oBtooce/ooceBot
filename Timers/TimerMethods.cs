@@ -1,4 +1,5 @@
-﻿using ooceBot.Functionality;
+﻿using Microsoft.EntityFrameworkCore.Sqlite.Query.Internal;
+using ooceBot.Functionality;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -20,12 +21,13 @@ namespace ooceBot.Timers
             $"Typing !here will take your attendance. If you report in enough times, you get rewards {BotVariables.obtoocBri}",
             $"Twitch Prime subscriptions are greatly appreciated {BotVariables.obtoocBri}",
             $"Type !stats (username) to see someone's chess.com ratings {BotVariables.obtoocBri}",
-            "Check out oBtooce's socials: https://linktr.ee/obtooce",
             "Song requests (!sr song-title-or-yt-link)",
             $"Got a big personality? Type !p to show it off {BotVariables.obtoocBri}",
             "A list of commands can be found here: !help",
             $"Follower emotes: {BotVariables.obtoocBri} {BotVariables.obtoocF} {BotVariables.obtoocW} {BotVariables.obtoocNice} {BotVariables.obtoocOmg}",
-            $"Donate 100 bits to receive a COOL PRIZE {BotVariables.obtoocBri}"
+            $"Donate 100 bits to receive a COOL PRIZE {BotVariables.obtoocBri}",
+            $"If you're feeling poetic, type !haiku to fulfill your creative desires {BotVariables.obtoocBri}",
+            $"Type !followage to see how long you've been around {BotVariables.obtoocBri}"
         };
 
         public static async Task PostMessageInChat(TwitchClient client, TimeSpan downtime)

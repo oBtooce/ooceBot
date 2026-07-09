@@ -69,12 +69,16 @@ namespace ooceBot.AttendanceLogic
                 {
                     attendanceRecord.AttendanceCount %= 10;
 
-                    message = $"{BotVariables.obtoocW} {BotVariables.obtoocW} Congratulations! {BotVariables.obtoocW} {BotVariables.obtoocW}    {args.ChatMessage.DisplayName}, to reward you for your regular attendance, you get {BotVariables.ATTENDANCE_POINT_VALUE} \"points\" to spend on channel point redemptions {BotVariables.obtoocBri}";
+                    message = $"{BotVariables.obtoocW} {BotVariables.obtoocW} Congratulations! {BotVariables.obtoocW} {BotVariables.obtoocW}    {args.ChatMessage.DisplayName}, to reward you for your regular attendance, you get {BotVariables.ATTENDANCE_POINT_VALUE} \"points\" to spend on channel point redemptions {BotVariables.obtoocBri} Your current total is {attendanceRecord.PointsForRedemption}";
                     args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
                 }
                 else
                 {
-                    message = $"{args.ChatMessage.DisplayName}, your attendance has been recorded. You have {attendanceRecord.AttendanceCount} {(attendanceRecord.AttendanceCount == 1 ? "day" : "days")} on record. Let's see what happens when you reach 10 days {BotVariables.obtoocBri}";
+                    if (args.CommandText == "!present")
+                        message = $"Insubordinate and churlish! {args.ChatMessage.DisplayName}, your attendance is noted, but follow the rules next time! You have {attendanceRecord.AttendanceCount} {(attendanceRecord.AttendanceCount == 1 ? "day" : "days")} on record.";
+                    else
+                        message = $"{args.ChatMessage.DisplayName}, your attendance has been recorded. You have {attendanceRecord.AttendanceCount} {(attendanceRecord.AttendanceCount == 1 ? "day" : "days")} on record {BotVariables.obtoocBri}";
+
                     args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
                 }
             }
@@ -89,7 +93,7 @@ namespace ooceBot.AttendanceLogic
                     DateOfAttendance = BotVariables.StreamStartTime
                 };
 
-                message = $"{args.ChatMessage.DisplayName}, your attendance journey has begun! Let's see what happens when you reach 10 days {BotVariables.obtoocBri}";
+                message = $"{args.ChatMessage.DisplayName}, your attendance journey has begun {BotVariables.obtoocBri}";
                 args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
 
                 args.Context.AttendanceRecords.Add(newAttendance);

@@ -79,12 +79,12 @@ class Program
         // Check for bits first, then check for commands, and also make sure to ignore commands when bits are used
         if (e.ChatMessage.Bits > 0)
             BitMethods.HandleBitsMessage(Client, e.ChatMessage, NightbotSongRequestClient);
-        else if (BotVariables.CommandsList.TryGetValue(messageParts.First().ToLower(), out BotVariables.Command command) || BotVariables.AdminCommands.TryGetValue(messageParts.First().ToLower(), out command))
+        else if (BotVariables.CommandsList.TryGetValue(messageParts.First().ToLower(), out BotVariables.Command command) || BotVariables.AdminCommands.TryGetValue(messageParts.First().ToLower(), out command) || BotVariables.ChatterCommands.TryGetValue(messageParts.First().ToLower(), out command))
             if (messageParts.Length == 1)
                 command(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, Api, messageParts.First(), string.Empty, dbContext));
             else
                 command(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, Api, messageParts.First(), messageParts.Last(), dbContext));
-        else if (BotVariables.VideoCommands.TryGetValue(messageParts.First().ToLower(), out command) || BotVariables.WordCommands.TryGetValue(messageParts.First().ToLower(), out command))
+        else if (BotVariables.WordCommands.TryGetValue(messageParts.First().ToLower(), out command))
             command(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, Api, messageParts.First(), string.Empty, dbContext));
     }
 }

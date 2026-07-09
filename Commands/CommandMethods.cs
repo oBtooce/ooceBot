@@ -191,7 +191,7 @@ namespace ooceBot.Commands
                 TimeSpan followerAge = await TwitchAPIMethods.GetFollowAgeStatsForChatter(args.ChatMessage.UserId);
                 FollowAgeData data = TwitchAPIMethods.FormatFollowAgeData(followerAge);
 
-                message = $"{args.ChatMessage.DisplayName}, you have been following for {data.TotalYears} years and {data.TotalDays} days {BotVariables.obtoocBri}";
+                message = $"{args.ChatMessage.DisplayName}, you have been following for {(data.TotalYears != 0 ? $"{(data.TotalYears == 1 ? "year" : "years")} and " : "")} {data.TotalDays} days {BotVariables.obtoocBri}";
             }
             catch (Exception e)
             {
@@ -241,13 +241,6 @@ namespace ooceBot.Commands
 
                 foreach (var key in Keys)
                     commandListMessage += key == Keys.Last() ? key : $"{key} • ";
-
-                commandListMessage += " [Video commands for subs/VIPs: ";
-
-                List<string> VideoKeys = BotVariables.VideoCommands.Keys.OrderBy(vk => vk).ToList();
-
-                foreach (var key in VideoKeys)
-                    commandListMessage += key == VideoKeys.Last() ? $"{key}]" : $"{key} • ";
 
                 string message = commandListMessage;
                 args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
@@ -563,6 +556,8 @@ namespace ooceBot.Commands
 
         public static void Store(CommandArgs args)
         {
+            // Todo: think of ways to display the rewards in chat
+
             string message = $"Nothing at the store yet. Stay tuned {BotVariables.obtoocBri}";
             args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
@@ -617,7 +612,21 @@ namespace ooceBot.Commands
         {
             string message = $"Latest YouTube video: {BotVariables.LatestYTVideo}";
             args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
-        }        
+        }
+
+        public static async void Yay(CommandArgs args)
+        {
+            // Get the current volume from the API (whole numbers are the only accepted values, so we use ints for all calculations)
+            int originalVolume = await VolumeControl.GetNightbotCurrentVolume(args.NightbotSongRequestClient);
+
+            // Keep track of the volume for the reset after the video is done
+            int updatedVolume = await VolumeControl.ReduceVolume(args.NightbotSongRequestClient, originalVolume, originalVolume);
+
+            PlaySounds.PlaySound($"{ConfigurationManager.AppSettings["SoundsFolder"]}\\Yay.mp3");
+
+            // Reset the volume to its previous level
+            await VolumeControl.IncreaseVolume(args.NightbotSongRequestClient, updatedVolume, originalVolume);
+        }
 
         public static void YouTube(CommandArgs args)
         {

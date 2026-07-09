@@ -41,7 +41,6 @@ Commands are routed via four static `Dictionary<string, Action<CommandArgs>>` in
 |---|---|---|
 | `AdminCommands` | Broadcaster/mod only | `!back`, `!brb`, `!game`, `!title` |
 | `CommandsList` | All chatters | `!here`, `!play`, `!quote`, `!stats` |
-| `VideoCommands` | Subscribers/VIPs | `!lobster`, `!who`, `!wtf` |
 | `WordCommands` | All chatters | `f`, `lol`, `nice`, `w`, `wow` |
 
 `Program.cs` receives each chat message, checks access level, then looks up and invokes the delegate. All command methods receive a single `CommandArgs` object (defined in `Commands/CommandArgs.cs`) containing the TwitchClient, ChatMessage, SqliteConnection, HttpClient, TwitchAPI, parsed command text/quantifier, and a Random instance.
