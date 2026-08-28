@@ -19,15 +19,14 @@ namespace ooceBot.Timers
         private static List<string> MessagesToDisplay = new List<string>
         {
             $"Typing !here will take your attendance. If you report in enough times, you get rewards {BotVariables.obtoocBri}",
-            $"Twitch Prime subscriptions are greatly appreciated {BotVariables.obtoocBri}",
-            $"Type !stats (username) to see someone's chess.com ratings {BotVariables.obtoocBri}",
-            "Song requests (!sr song-title-or-yt-link)",
+            $"Type !sr [name of song or YT link] to request a song and !song to get info about the current song {BotVariables.obtoocBri}",
             $"Got a big personality? Type !p to show it off {BotVariables.obtoocBri}",
             "A list of commands can be found here: !help",
             $"Follower emotes: {BotVariables.obtoocBri} {BotVariables.obtoocF} {BotVariables.obtoocW} {BotVariables.obtoocNice} {BotVariables.obtoocOmg}",
             $"Donate 100 bits to receive a COOL PRIZE {BotVariables.obtoocBri}",
             $"If you're feeling poetic, type !haiku to fulfill your creative desires {BotVariables.obtoocBri}",
-            $"Type !followage to see how long you've been around {BotVariables.obtoocBri}"
+            $"Type !followage to see how long you've been around {BotVariables.obtoocBri}",
+            "Type !buyin to get your first 100 tokens to use at the arcade!"
         };
 
         public static async Task PostMessageInChat(TwitchClient client, TimeSpan downtime)

@@ -50,12 +50,18 @@ namespace ooceBot.Miscellaneous
         /// <returns></returns>
         public static FollowAgeData FormatFollowAgeData(TimeSpan spanData)
         {
-            // Potential todo for later: figure out hwo to calculate months
             FollowAgeData returnValue = new();
             const int DAYS_IN_YEAR = 365;
+            const int MONTHS_IN_YEAR = 12;
 
-            returnValue.TotalYears = (int)spanData.TotalDays / DAYS_IN_YEAR;
-            returnValue.TotalDays = (int)Math.Truncate(spanData.TotalDays) - (returnValue.TotalYears * DAYS_IN_YEAR) - (returnValue.TotalMonths * DAYS_IN_YEAR);
+            // When dividing a double by an int, the int is implicitly converted to a double and the calculation returns a double. Explicitly casting to int at the end drops any decimals
+            returnValue.TotalYears = (int)(spanData.TotalDays / DAYS_IN_YEAR);
+
+            // Calculate leftover days from above and use that value to get total months
+            int remainingDays = (int)(spanData.TotalDays - (returnValue.TotalYears * DAYS_IN_YEAR));
+
+
+            returnValue.TotalDays = (int)Math.Truncate(spanData.TotalDays) - (returnValue.TotalYears * DAYS_IN_YEAR);
 
             return returnValue;
         }

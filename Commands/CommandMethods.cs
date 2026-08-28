@@ -57,21 +57,22 @@ namespace ooceBot.Commands
 
         public static void Bird(CommandArgs args)
         {
-            int birdCount = -1;
-
             // Verify that the DB grabbed a value
             var obj = args.Context.GeneralStreamData.FirstOrDefault();
 
             if (obj is not null)
-                birdCount = obj.BirdCounter;
+            {
+                obj.BirdCounter++;
 
-            string message = $"The Bird Opening has been used {birdCount} {(birdCount == 1 ? "time" : "times")} {BotVariables.obtoocBri}";
-            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
-        }
+                args.Context.SaveChanges();
+            }
+            else
+            {
+                string errorMessage = $"Something went wrong.";
+                args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(errorMessage) : errorMessage);
+            }
 
-        public static void Boner(CommandArgs args)
-        {
-            string message = $"don't get married";
+            string message = $"The Bird Opening has been used {obj.BirdCounter} {(obj.BirdCounter == 1 ? "time" : "times")} {BotVariables.obtoocBri}";
             args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
@@ -83,7 +84,7 @@ namespace ooceBot.Commands
             // Check balances for player and provide tokens if balance is empty
             ArcadeMethods.HandleBuyins(args.Connection, args.ChatMessage.UserId, BotVariables.DEFAULT_BUYIN);
 
-            string message = $"{args.ChatMessage.DisplayName}, you have been given {BotVariables.DEFAULT_BUYIN} tokens. Have fun {BotVariables.obtoocBri}";
+            string message = $"{args.ChatMessage.DisplayName}, you have been given {BotVariables.DEFAULT_BUYIN} tokens. Use them by typing !play and a number (!play 10) or a percentage (!play 10%) {BotVariables.obtoocBri}";
             args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
@@ -188,10 +189,13 @@ namespace ooceBot.Commands
             string message;
             try
             {
+                // Calculate the time that a chatter has been a follower
                 TimeSpan followerAge = await TwitchAPIMethods.GetFollowAgeStatsForChatter(args.ChatMessage.UserId);
+
+                // Once calculated, break it down into various metrics like years, months, days, etc.
                 FollowAgeData data = TwitchAPIMethods.FormatFollowAgeData(followerAge);
 
-                message = $"{args.ChatMessage.DisplayName}, you have been following for {(data.TotalYears != 0 ? $"{(data.TotalYears == 1 ? "year" : "years")} and " : "")} {data.TotalDays} days {BotVariables.obtoocBri}";
+                message = $"{args.ChatMessage.DisplayName}, you have been following for {(data.TotalYears != 0 ? $"{data.TotalYears} {(data.TotalYears == 1 ? "year" : "years")} and " : "")} {data.TotalDays} days {BotVariables.obtoocBri}";
             }
             catch (Exception e)
             {
@@ -259,10 +263,7 @@ namespace ooceBot.Commands
 
         public static void Here(CommandArgs args)
         {
-            if (args.CommandQuantifier == string.Empty)
-                AttendanceMethods.TakeAttendance(args);
-            else
-                AttendanceMethods.ProvideAttendanceInfo(args);
+            AttendanceMethods.TakeAttendance(args);
         }
 
         public static void Lurk(CommandArgs args)
@@ -290,6 +291,7 @@ namespace ooceBot.Commands
         public static void Play(CommandArgs args)
         {
             string message;
+            bool didWinWager = false;
 
             // Make sure that the user exists before doing anything
             var player = args.Context.ArcadeRecords.FirstOrDefault(record => record.Id == args.ChatMessage.UserId);
@@ -313,11 +315,11 @@ namespace ooceBot.Commands
 
                 // Calculate whether or not the wager won or lost
                 ArcadeStats arcadeRecord = ArcadeMethods.GetPlayerCurrentStats(args.Connection, args.ChatMessage.UserId);
-                arcadeRecord.DidWinWager = ArcadeMethods.DecideTokenOutcome(args.Random);
+                didWinWager = ArcadeMethods.DecideTokenOutcome(args.Random);
 
-                ArcadeMethods.UpdateArcadeRecord(ref arcadeRecord, tokenValueFromPercentage, args.Connection, args.ChatMessage.UserId);
+                ArcadeMethods.UpdateArcadeRecord(ref arcadeRecord, tokenValueFromPercentage, didWinWager, args.Connection, args.ChatMessage.UserId);
 
-                if (arcadeRecord.DidWinWager)
+                if (didWinWager)
                 {
                     message = $"{BotVariables.obtoocW} Nice win, {args.ChatMessage.DisplayName}! {BotVariables.obtoocW} Looks like you've got {arcadeRecord.TotalTokens} tokens to spend.";
                     args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
@@ -337,11 +339,11 @@ namespace ooceBot.Commands
                 {
                     // Calculate whether or not the wager won or lost
                     ArcadeStats arcadeRecord = ArcadeMethods.GetPlayerCurrentStats(args.Connection, args.ChatMessage.UserId);
-                    arcadeRecord.DidWinWager = ArcadeMethods.DecideTokenOutcome(args.Random);
+                    didWinWager = ArcadeMethods.DecideTokenOutcome(args.Random);
 
-                    ArcadeMethods.UpdateArcadeRecord(ref arcadeRecord, tokenAmount, args.Connection, args.ChatMessage.UserId);
+                    ArcadeMethods.UpdateArcadeRecord(ref arcadeRecord, tokenAmount, didWinWager, args.Connection, args.ChatMessage.UserId);
 
-                    if (arcadeRecord.DidWinWager)
+                    if (didWinWager)
                     {
                         message = $"{BotVariables.obtoocW} Nice win, {args.ChatMessage.DisplayName}! {BotVariables.obtoocW} Looks like you've got {arcadeRecord.TotalTokens} tokens to spend.";
                         args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
@@ -363,6 +365,19 @@ namespace ooceBot.Commands
                 message = "This seems...off. Try again with either a number (50) or a valid percentage (50%).";
                 args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
             }
+        }
+
+        public static void Points(CommandArgs args)
+        {
+            string message = string.Empty;
+            var attendanceRecord = args.Context.AttendanceRecords.FirstOrDefault(rec => rec.Id == args.ChatMessage.UserId);
+
+            if (attendanceRecord is not null)
+                message = $"{args.ChatMessage.DisplayName}, you currently have {attendanceRecord.PointsForRedemption} points to use on channel redemptions. Attend more streams to earn more points {BotVariables.obtoocBri}";
+            else
+                message = $"Whoops! {args.ChatMessage.DisplayName}, it looks like you haven't attended any classes yet. Type !here to start your learning journey today {BotVariables.obtoocBri}";
+            
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
         public static void Quote(CommandArgs args)

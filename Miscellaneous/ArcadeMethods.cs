@@ -62,8 +62,7 @@ namespace ooceBot.Miscellaneous
                         LargestWager = reader.GetInt32(reader.GetOrdinal("LargestWager")),
                         HighScore = reader.GetInt32(reader.GetOrdinal("HighScore")),
                         WinningStreak = reader.GetInt32(reader.GetOrdinal("WinningStreak")),
-                        LongestWinningStreak = reader.GetInt32(reader.GetOrdinal("LongestWinningStreak")),
-                        DidWinWager = true
+                        LongestWinningStreak = reader.GetInt32(reader.GetOrdinal("LongestWinningStreak"))
                     };
                 }
                 else
@@ -109,13 +108,13 @@ namespace ooceBot.Miscellaneous
             command.ExecuteNonQuery();
         }
 
-        public static void UpdateArcadeRecord(ref ArcadeStats currentStats, int wagerAmount, SqliteConnection connection, string userId)
+        public static void UpdateArcadeRecord(ref ArcadeStats currentStats, int wagerAmount, bool didWinWager, SqliteConnection connection, string userId)
         {
             var currentTotalTokens = currentStats.TotalTokens;
             var currentHighScore = currentStats.HighScore;
             var currentLongestStreak = currentStats.LongestWinningStreak;
 
-            if (currentStats.DidWinWager)
+            if (didWinWager)
             {
                 // Update all required values (win)
                 currentStats.TimesWagered++;

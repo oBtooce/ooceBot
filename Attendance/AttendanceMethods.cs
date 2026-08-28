@@ -13,36 +13,6 @@ namespace ooceBot.AttendanceLogic
 {
     public static class AttendanceMethods
     {
-        public static void ProvideAttendanceInfo(CommandArgs args)
-        {
-            string message;
-            var attendanceRecord = args.Context.AttendanceRecords.FirstOrDefault(rec => rec.Id == args.ChatMessage.UserId);
-
-            if (attendanceRecord is not null)
-            {
-                switch (args.CommandQuantifier)
-                {
-                    case "points":
-                        message = $"{args.ChatMessage.DisplayName}, you currently have {attendanceRecord.PointsForRedemption} points to use on channel redemptions. Attend more streams to earn more points {BotVariables.obtoocBri}";
-                        args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
-                        break;
-                    case "total":
-                        message = $"{args.ChatMessage.DisplayName}, you've attended {attendanceRecord.TotalAttendance} streams. You rock {BotVariables.obtoocBri}";
-                        args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
-                        break;
-                    default:
-                        message = $"If you would like more attendance information, try one of the the following available commands in chat: !here points, !here total";
-                        args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
-                        break;
-                }
-            }
-            else
-            {
-                message = $"{args.ChatMessage.DisplayName}, have you seriously never attended this stream before!? Type !here to get started {BotVariables.obtoocBri}";
-                args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
-            }            
-        }
-
         public static void TakeAttendance(CommandArgs args)
         {
             string message;
@@ -68,6 +38,7 @@ namespace ooceBot.AttendanceLogic
                 if (attendanceRecord.AttendanceCount % 10 == 0)
                 {
                     attendanceRecord.AttendanceCount %= 10;
+                    attendanceRecord.PointsForRedemption += BotVariables.ATTENDANCE_POINT_VALUE;
 
                     message = $"{BotVariables.obtoocW} {BotVariables.obtoocW} Congratulations! {BotVariables.obtoocW} {BotVariables.obtoocW}    {args.ChatMessage.DisplayName}, to reward you for your regular attendance, you get {BotVariables.ATTENDANCE_POINT_VALUE} \"points\" to spend on channel point redemptions {BotVariables.obtoocBri} Your current total is {attendanceRecord.PointsForRedemption}";
                     args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
@@ -75,9 +46,9 @@ namespace ooceBot.AttendanceLogic
                 else
                 {
                     if (args.CommandText == "!present")
-                        message = $"Insubordinate and churlish! {args.ChatMessage.DisplayName}, your attendance is noted, but follow the rules next time! You have {attendanceRecord.AttendanceCount} {(attendanceRecord.AttendanceCount == 1 ? "day" : "days")} on record.";
+                        message = $"Insubordinate and churlish! {args.ChatMessage.DisplayName}, your attendance is noted ({attendanceRecord.AttendanceCount}/10), but follow the rules next time! You've attended a total of {attendanceRecord.TotalAttendance} {(attendanceRecord.TotalAttendance == 1 ? "stream" : "streams")}.";
                     else
-                        message = $"{args.ChatMessage.DisplayName}, your attendance has been recorded. You have {attendanceRecord.AttendanceCount} {(attendanceRecord.AttendanceCount == 1 ? "day" : "days")} on record {BotVariables.obtoocBri}";
+                        message = $"{args.ChatMessage.DisplayName}, your attendance has been recorded ({attendanceRecord.AttendanceCount}/10). You've attended a total of {attendanceRecord.TotalAttendance} {(attendanceRecord.TotalAttendance == 1 ? "stream" : "streams")} {BotVariables.obtoocBri}";
 
                     args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
                 }

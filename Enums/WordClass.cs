@@ -15,8 +15,6 @@ namespace ooceBot.Enums
         Adverb,
         Pronoun,
         Preposition,
-        Conjunction,
-        Interjection,
         Article
     }
 }

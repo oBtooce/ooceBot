@@ -132,6 +132,7 @@ namespace ooceBot
             { "!lurk", CommandMethods.Lurk },
             { "!p", CommandMethods.Personality },
             { "!play", CommandMethods.Play },
+            { "!points", CommandMethods.Points },
             { "!present", CommandMethods.Here },
             { "!quote", CommandMethods.Quote },
             { "!randomquote", CommandMethods.RandomQuote },

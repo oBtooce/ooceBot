@@ -21,7 +21,5 @@ namespace ooceBot.Models
         public int WinningStreak { get; set; }
 
         public int LongestWinningStreak { get; set; }
-
-        public bool DidWinWager { get; set; }
     }
 }

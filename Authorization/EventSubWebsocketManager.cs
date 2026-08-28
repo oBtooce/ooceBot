@@ -1,17 +1,18 @@
-﻿using TwitchLib.EventSub.Websockets;
-using TwitchLib.EventSub.Core.EventArgs.Channel;
+﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using TwitchLib.EventSub.Websockets.Core.EventArgs;
-using Microsoft.Extensions.Hosting;
-using TwitchLib.PubSub.Events;
-using ooceBot.Commands;
 using OBSWebsocketDotNet;
-using ooceBot.AudioVideo;
-using ooceBot.Sounds;
-using TwitchLib.Api.Core.Enums;
-using System.Configuration;
-using TwitchLib.Api;
 using OBSWebsocketDotNet.Types;
+using ooceBot.AudioVideo;
+using ooceBot.Commands;
+using ooceBot.Sounds;
+using System.Configuration;
+using System.Net.WebSockets;
+using TwitchLib.Api;
+using TwitchLib.Api.Core.Enums;
+using TwitchLib.EventSub.Core.EventArgs.Channel;
+using TwitchLib.EventSub.Websockets;
+using TwitchLib.EventSub.Websockets.Core.EventArgs;
+using TwitchLib.PubSub.Events;
 
 namespace ooceBot.Authorization
 {
@@ -71,74 +72,66 @@ namespace ooceBot.Authorization
 
             int originalVolume;
             int volumeChange;
-            int updatedVolume;
-
-            string currentScene;
-            List<SceneItemDetails> sceneItems;
 
             switch (channelPointReward.Reward.Title) 
             {
+                case "Something To Make You Smile :)":
+                    // Get the current volume from the API (whole numbers are the only accepted values, so we use ints for all calculations)
+                    originalVolume = await VolumeControl.GetNightbotCurrentVolume(NightbotSongRequestClient);
+                    volumeChange = (int)(originalVolume * 0.9);
+
+                    await PlayVideoInOBS(websocket, originalVolume, volumeChange, "Maggie");
+                    break;
+                case "The Cure For Sadness...":
+                    // Get the current volume from the API (whole numbers are the only accepted values, so we use ints for all calculations)
+                    originalVolume = await VolumeControl.GetNightbotCurrentVolume(NightbotSongRequestClient);
+                    volumeChange = (int)(originalVolume * 0.9);
+
+                    await PlayVideoInOBS(websocket, originalVolume, volumeChange, "Homer");
+                    break;
                 case "Lobster":
                     // Get the current volume from the API (whole numbers are the only accepted values, so we use ints for all calculations)
                     originalVolume = await VolumeControl.GetNightbotCurrentVolume(NightbotSongRequestClient);
                     volumeChange = (int)(originalVolume * 0.9);
 
-                    // Keep track of the volume for the reset after the video is done
-                    updatedVolume = await VolumeControl.ReduceVolume(NightbotSongRequestClient, originalVolume, volumeChange);
-
-                    // The scene needs to exist in the currently selected scene, so fetch the current scene name and its items
-                    currentScene = websocket.GetCurrentProgramScene();
-                    sceneItems = websocket.GetSceneItemList(currentScene);
-
-                    // Need to figure out a way to make the source name not a string because this is a bad setup
-                    var lobsterScene = sceneItems.First(item => item.SourceName == "LOBSTER");
-
-                    await PlayVideos.PlayVideoAndHideAtEnd(websocket, currentScene, lobsterScene);
-
-                    // Reset the volume after the video is done
-                    await VolumeControl.IncreaseVolume(NightbotSongRequestClient, updatedVolume, volumeChange);
+                    await PlayVideoInOBS(websocket, originalVolume, volumeChange, "LOBSTER");
                     break;
                 case "Who Do You Think You Are!?":
                     // Get the current volume from the API (whole numbers are the only accepted values, so we use ints for all calculations)
                     originalVolume = await VolumeControl.GetNightbotCurrentVolume(NightbotSongRequestClient);
                     volumeChange = (int)(originalVolume * 0.9);
 
-                    // Keep track of the volume for the reset after the video is done
-                    updatedVolume = await VolumeControl.ReduceVolume(NightbotSongRequestClient, originalVolume, volumeChange);
-
-                    // The scene needs to exist in the currently selected scene, so fetch the current scene name and its items
-                    currentScene = websocket.GetCurrentProgramScene();
-                    sceneItems = websocket.GetSceneItemList(currentScene);
-
-                    // Need to figure out a way to make the source name not a string because this is a bad setup
-                    var whoScene = sceneItems.First(item => item.SourceName == "WHO");
-                    await PlayVideos.PlayVideoAndHideAtEnd(websocket, currentScene, whoScene);
-
-                    // Reset the volume after the video is done
-                    await VolumeControl.IncreaseVolume(NightbotSongRequestClient, updatedVolume, volumeChange);
+                    await PlayVideoInOBS(websocket, originalVolume, volumeChange, "WHO");
                     break;
                 case "WTF":
                     // Get the current volume from the API (whole numbers are the only accepted values, so we use ints for all calculations)
                     originalVolume = await VolumeControl.GetNightbotCurrentVolume(NightbotSongRequestClient);
                     volumeChange = (int)(originalVolume * 0.9);
 
-                    // Keep track of the volume for the reset after the video is done
-                    updatedVolume = await VolumeControl.ReduceVolume(NightbotSongRequestClient, originalVolume, volumeChange);
-
-                    // The scene needs to exist in the currently selected scene, so fetch the current scene name and its items
-                    currentScene = websocket.GetCurrentProgramScene();
-                    sceneItems = websocket.GetSceneItemList(currentScene);
-
-                    // Need to figure out a way to make the source name not a string because this is a bad setup
-                    var wtfScene = sceneItems.First(item => item.SourceName == "WTF");
-                    await PlayVideos.PlayVideoAndHideAtEnd(websocket, currentScene, wtfScene);
-
-                    // Reset the volume after the video is done
-                    await VolumeControl.IncreaseVolume(NightbotSongRequestClient, updatedVolume, volumeChange);
+                    await PlayVideoInOBS(websocket, originalVolume, volumeChange, "WTF");
                     break;
                 default:
                     break;
             }
+        }
+
+        private static async Task PlayVideoInOBS(OBSWebsocket websocket, int originalVolume, int volumeChange, string sceneName)
+        {
+            // Keep track of the volume for the reset after the video is done
+            int updatedVolume = await VolumeControl.ReduceVolume(NightbotSongRequestClient, originalVolume, volumeChange);
+
+            // The scene needs to exist in the currently selected scene, so fetch the current scene name and its items
+            string currentScene = websocket.GetCurrentProgramScene();
+            List<SceneItemDetails> sceneItems = websocket.GetSceneItemList(currentScene);
+
+            var scene = sceneItems.First(item => item.SourceName == sceneName);
+
+            await PlayVideos.PlayVideoAndHideAtEnd(websocket, currentScene, scene);
+
+            // Reset the volume after the video is done
+            await VolumeControl.IncreaseVolume(NightbotSongRequestClient, updatedVolume, volumeChange);
+
+            return;
         }
     }
 }
