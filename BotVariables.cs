@@ -36,6 +36,25 @@ namespace ooceBot
 
         public static Dictionary<int, CustomReward> CustomRewards { get; set; } = new Dictionary<int, CustomReward>();
 
+        // List of IDs that require specific code when redeemed
+        public static Dictionary<Guid, string> CustomRewardIDMappings { get; set; } = new Dictionary<Guid, string>
+        {
+            { new Guid("00939822-8032-416f-bdfc-c635e5351b87"), "This guy stinks" },
+            { new Guid("043e21a6-864f-4dee-8c3a-2c72cc03e836"), "Windows start" },
+            { new Guid("431d2cbe-79dd-4336-82e8-397290fb934b"), "Fail horn" },
+            { new Guid("6dcbe0e2-fc8c-42c9-91f9-3f4234185015"), "Got em" },
+            { new Guid("b6d9e8af-da96-43ef-bae8-de038839b8da"), "The game of chess" },
+            { new Guid("bce37961-72e0-4a25-8c0e-88e03f8e03d0"), "Haha" },
+            { new Guid("c2603c03-25f9-408c-95f1-b3aea2a8b8a8"), "Windows end" },
+            { new Guid("cd4493b7-1cd9-4236-b6d2-9581dd9f63ac"), "Vine boom" },
+            { new Guid("c762c02c-7d17-4b83-a206-1dd57e631f01"), "Applause" },
+            { new Guid("403db7bc-ca3d-4380-8a2d-dd002391423e"), "LOBSTER" },
+            { new Guid("54e1e600-5dce-43ad-b686-f10db40a379e"), "WHO" },
+            { new Guid("708b1881-d1cc-4963-a376-b6f5560509e4"), "WTF" },
+            { new Guid("e92820a8-b024-4b69-be1b-6de94282f357"), "Maggie" },
+            { new Guid("ef6e5f85-b31d-44e7-b991-e2f11289b57c"), "Homer" }
+        };
+
         public static DateOnly StreamStartTime { get; set; }
 
         #endregion

@@ -115,7 +115,7 @@ namespace ooceBot.Authorization
             }
         }
 
-        private static async Task PlayVideoInOBS(OBSWebsocket websocket, int originalVolume, int volumeChange, string sceneName)
+        public static async Task PlayVideoInOBS(OBSWebsocket websocket, int originalVolume, int volumeChange, string sceneName)
         {
             // Keep track of the volume for the reset after the video is done
             int updatedVolume = await VolumeControl.ReduceVolume(NightbotSongRequestClient, originalVolume, volumeChange);

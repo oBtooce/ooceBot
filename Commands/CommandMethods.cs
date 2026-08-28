@@ -423,7 +423,7 @@ namespace ooceBot.Commands
             args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
-        public static void Redeem(CommandArgs args)
+        public static async void Redeem(CommandArgs args)
         {
             string message;
 
@@ -445,8 +445,7 @@ namespace ooceBot.Commands
 
                 if (redemptionPoints > reward.Cost)
                 {
-                    chatterAttendance.PointsForRedemption -= reward.Cost;
-                    args.Context.SaveChanges();
+                    await AttendanceMethods.RedeemReward(reward, chatterAttendance, args);
 
                     message = $"{args.ChatMessage.DisplayName}, you redeemed \"{reward.Title}\" for {reward.Cost} points. Your remaining total is {chatterAttendance.PointsForRedemption}. Thanks for hanging out in chat {BotVariables.obtoocBri}";
                     args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);

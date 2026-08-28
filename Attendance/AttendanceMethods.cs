@@ -1,13 +1,18 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using OBSWebsocketDotNet;
+using ooceBot.Authorization;
 using ooceBot.Commands;
 using ooceBot.Functionality;
 using ooceBot.Models;
+using ooceBot.Sounds;
 using ooceBot.SQL;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Text;
 using System.Threading.Tasks;
+using TwitchLib.Api.Helix.Models.ChannelPoints;
 
 namespace ooceBot.AttendanceLogic
 {
@@ -71,6 +76,43 @@ namespace ooceBot.AttendanceLogic
             }
 
             // Save changes after all is said and done
+            args.Context.SaveChanges();
+        }
+
+        public static async Task RedeemReward(CustomReward reward, Attendance attendanceRecord, CommandArgs args)
+        {
+            string rewardName = reward.Title;
+
+            OBSWebsocket websocket = await OBSManager.ConnectToOBSWebsocket();
+
+            int originalVolume = await VolumeControl.GetNightbotCurrentVolume(Program.NightbotSongRequestClient);
+            int volumeChange;
+
+            switch (rewardName)
+            {
+                case "Lobster":
+                    volumeChange = (int)(originalVolume * 0.9);
+                    await EventSubWebsocketManager.PlayVideoInOBS(websocket, originalVolume, volumeChange, "LOBSTER");
+                    break;
+                case "Who Do You Think You Are!?":
+                    volumeChange = (int)(originalVolume * 0.9);
+                    await EventSubWebsocketManager.PlayVideoInOBS(websocket, originalVolume, volumeChange, "WHO");
+                    break;
+                case "WTF":
+                    volumeChange = (int)(originalVolume * 0.9);
+                    await EventSubWebsocketManager.PlayVideoInOBS(websocket, originalVolume, volumeChange, "WTF");
+                    break;
+                case "Something To Make You Smile :)":
+                    volumeChange = (int)(originalVolume * 0.9);
+                    await EventSubWebsocketManager.PlayVideoInOBS(websocket, originalVolume, volumeChange, "Maggie");
+                    break;
+                case "The Cure For Sadness...":
+                    volumeChange = (int)(originalVolume * 0.9);
+                    await EventSubWebsocketManager.PlayVideoInOBS(websocket, originalVolume, volumeChange, "Homer");
+                    break;
+            }
+
+            attendanceRecord.PointsForRedemption -= reward.Cost;
             args.Context.SaveChanges();
         }
     }
