@@ -26,7 +26,7 @@ namespace ooceBot.Timers
             $"Donate 100 bits to receive a COOL PRIZE {BotVariables.obtoocBri}",
             $"If you're feeling poetic, type !haiku to fulfill your creative desires {BotVariables.obtoocBri}",
             $"Type !followage to see how long you've been around {BotVariables.obtoocBri}",
-            "Type !buyin to get your first 100 tokens to use at the arcade!"
+            $"Type !buyin to get your first 100 tokens to use at the arcade, then type !play (amount or percentage) to test your luck {BotVariables.obtoocBri}"
         };
 
         public static async Task PostMessageInChat(TwitchClient client, TimeSpan downtime)

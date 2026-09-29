@@ -3,6 +3,7 @@ using ooceBot;
 using ooceBot.Authorization;
 using ooceBot.Bits;
 using ooceBot.Commands;
+using ooceBot.Functionality;
 using ooceBot.Miscellaneous;
 using ooceBot.Models;
 using ooceBot.SQL;
@@ -53,6 +54,9 @@ class Program
 
         Client.Connect();
 
+        // Start up the task that will process shoutouts for streamers that are regulars
+        ShoutoutMethods.StartQueueProcessor();
+
         await EventSubWebsocketManager.SetupEventSub(NightbotSongRequestClient, Api);
 
         Console.ReadLine();
@@ -69,7 +73,10 @@ class Program
     {
         string[] messageParts = e.ChatMessage.Message.Split(new char[] { ' ' }, 2);
 
-        DBQueryMethods.UpdateChatterDataPlusMaybeTheme(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, Api, messageParts.First(), string.Empty, dbContext));
+        bool isFirstMessageThisStream = DBQueryMethods.UpdateChatterDataPlusMaybeTheme(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, Api, messageParts.First(), string.Empty, dbContext));
+
+        if (isFirstMessageThisStream && !e.ChatMessage.IsBroadcaster && BotVariables.ShoutoutAllowlist.Contains(e.ChatMessage.UserId))
+            ShoutoutMethods.EnqueueShoutout(e.ChatMessage.UserId);
 
         // Open new connection
         Connection.Open();

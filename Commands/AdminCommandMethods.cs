@@ -34,9 +34,6 @@ namespace ooceBot.Commands
                 // Get the current volume from the API (whole numbers are the only accepted values, so we use ints for all calculations)
                 int originalVolume = await VolumeControl.GetNightbotCurrentVolume(args.NightbotSongRequestClient);
                 int volumeChange = BotVariables.DEFAULT_NIGHTBOT_VOLUME;
-
-                // Keep track of the volume for the reset after the video is done
-                await VolumeControl.IncreaseVolume(args.NightbotSongRequestClient, originalVolume, volumeChange);
             }
         }
 
@@ -54,7 +51,7 @@ namespace ooceBot.Commands
                 int volumeChange = originalVolume;
 
                 // Keep track of the volume for the reset after the video is done
-                int updatedVolume = await VolumeControl.ReduceVolume(args.NightbotSongRequestClient, originalVolume, volumeChange);
+                await VolumeControl.ReduceVolume(args.NightbotSongRequestClient, originalVolume, volumeChange);
 
                 // Fetch the current scene name and its items
                 var currentScene = websocket.GetCurrentProgramScene();
@@ -67,6 +64,8 @@ namespace ooceBot.Commands
                 websocket.SetInputMute("Mic/Aux", true);
 
                 PlaySounds.PlaySoundWithFader($"{ConfigurationManager.AppSettings["SoundsFolder"]}\\We'll Be Right Back.mp3", 0, 0);
+
+                await VolumeControl.IncreaseVolume(args.NightbotSongRequestClient, originalVolume, volumeChange);
             }
         }
 

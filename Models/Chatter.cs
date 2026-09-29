@@ -14,6 +14,6 @@ namespace ooceBot.Models
 
         public int HasTheme { get; set; }
 
-        public int HasChattedThisStream { get; set; }
+        public DateOnly? LastChattedStreamDate { get; set; }
     }
 }

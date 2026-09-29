@@ -42,13 +42,22 @@ namespace ooceBot.SQL
                     Id TEXT PRIMARY KEY,
                     DisplayName TEXT,
                     HasTheme INTEGER NOT NULL DEFAULT 0,
-                    HasChattedThisStream INTEGER NOT NULL DEFAULT 0
+                    LastChattedStreamDate TEXT DEFAULT NULL
                 );
 
                 CREATE INDEX IF NOT EXISTS idx_displayname_lower ON Chatters (LOWER(DisplayName));
             ";
 
             command.ExecuteNonQuery();
+
+            // Migrate pre-existing DBs that still have the old HasChattedThisStream flag column
+            command.CommandText = "SELECT COUNT(*) FROM pragma_table_info('Chatters') WHERE name = 'LastChattedStreamDate'";
+
+            if (Convert.ToInt32(command.ExecuteScalar()) == 0)
+            {
+                command.CommandText = "ALTER TABLE Chatters ADD COLUMN LastChattedStreamDate TEXT DEFAULT NULL";
+                command.ExecuteNonQuery();
+            }
         }
 
         /// <summary>

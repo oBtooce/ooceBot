@@ -59,6 +59,40 @@ namespace ooceBot
 
         #endregion
 
+        #region Shoutout Variables
+
+        // Twitch IDs of fellow streamers who get an automatic shoutout on their first message of the stream
+        public static readonly HashSet<string> ShoutoutAllowlist = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "30930203", // Bamo16
+            "976256727", // jacobswick
+            "175139946", // PopPiePlays
+            "882318577", // TarfRegulus
+            "567216466", // Jayvio
+            "463604723", // TheKingCharlesCav
+            "532390595", // smirnster
+            "61678385", // lolDayzo
+            "733368524", // xoxoSilverxoxo
+            "105807157", // bonerpulll
+            "78123387", // Rengaw87
+            "508657406", // ShogiExplained
+            "1047249468", // JM_Chess
+            "38485586", // Skwerly
+            "42172284", // MuNgLo
+            "490578924", // JMRTheBeast
+            "886446129", // batil69
+            "135731727", // jessedfe
+            "590446224", // KashCarbon
+            "495264600", // Tomj26c
+            "803612321", // evesingularity
+            "1378401144", // soffiailvento26
+            "733994451", // Dr_Ganto
+            "50014988", // SimpleVar
+            "122362829" // eric_clive
+        };
+
+        #endregion
+
         #region WebSocket Variables
         public static Uri WebSocketUri { get; } = new Uri("wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=30");
         #endregion
