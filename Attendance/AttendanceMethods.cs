@@ -79,6 +79,12 @@ namespace ooceBot.AttendanceLogic
             args.Context.SaveChanges();
         }
 
+        public static async Task RedeemAllPoints(Attendance attendanceRecord, CommandArgs args)
+        {
+            attendanceRecord.PointsForRedemption -= attendanceRecord.PointsForRedemption;
+            args.Context.SaveChanges();
+        }
+
         public static async Task RedeemReward(CustomReward reward, Attendance attendanceRecord, CommandArgs args)
         {
             string rewardName = reward.Title;

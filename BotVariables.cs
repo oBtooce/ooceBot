@@ -34,6 +34,10 @@ namespace ooceBot
 
         public static string BotUsername { get; } = "oocebot";
 
+        // Shared by the raw ADO.NET connection and the EF Core context. Mode=ReadWrite makes SQLite throw if the file is missing
+        // instead of silently creating an empty DB (e.g. when the bot is run from a different working directory)
+        public static string DbConnectionString { get; } = $"Data Source={System.Configuration.ConfigurationManager.AppSettings["DatabasePath"]};Mode=ReadWrite";
+
         public static Dictionary<int, CustomReward> CustomRewards { get; set; } = new Dictionary<int, CustomReward>();
 
         // List of IDs that require specific code when redeemed
@@ -169,6 +173,7 @@ namespace ooceBot
             { "!audit", CommandMethods.Audit },
             { "!bird", CommandMethods.Bird },            
             { "!buyin", CommandMethods.BuyIn },
+            { "!coords", CommandMethods.Coords },
             { "!croissant", CommandMethods.Croissant },
             { "!dap", CommandMethods.Dap },
             { "!dc", CommandMethods.Discord },

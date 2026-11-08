@@ -19,6 +19,8 @@ namespace ooceBot.Models
 
         public DbSet<Miscellaneous> GeneralStreamData { get; set; }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder options) => options.UseSqlite("Data Source=TwitchStats.db");
+        public DbSet<Streamer> Streamers { get; set; }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder options) => options.UseSqlite(BotVariables.DbConnectionString);
     }
 }

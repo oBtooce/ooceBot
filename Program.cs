@@ -25,7 +25,7 @@ class Program
 
     public static HttpClient NightbotSongRequestClient { get; set; }
 
-    public static SqliteConnection Connection { get; set; } = new SqliteConnection("Data Source=TwitchStats.db");
+    public static SqliteConnection Connection { get; set; } = new SqliteConnection(BotVariables.DbConnectionString);
 
     public static TwitchAPI Api { get; set; } = new TwitchAPI();
 
@@ -41,8 +41,8 @@ class Program
         await Startup.InitializeBroadcasterAccessToken();
         Api = new TwitchAPI(settings: new ApiSettings { ClientId = ConfigurationManager.AppSettings["TwitchClientID"], AccessToken = ConfigurationManager.AppSettings["TwitchBroadcasterAccessToken"] });
 
-        // Set up all variables that require Twitch Helix
-        Startup.UpdateHelixVariables(Api);
+        // Set up all variables that require Twitch Helix (awaited so BroadcasterID and StreamStartTime are set before chat connects)
+        await Startup.UpdateHelixVariables(Api);
 
         Client.OnConnected += Client_OnConnected;
         Client.OnMessageReceived += Client_OnMessageReceived;
@@ -54,7 +54,7 @@ class Program
 
         Client.Connect();
 
-        // Start up the task that will process shoutouts for streamers that are regulars
+        // Start up the task that will process shoutouts for recognized streamers
         ShoutoutMethods.StartQueueProcessor();
 
         await EventSubWebsocketManager.SetupEventSub(NightbotSongRequestClient, Api);
@@ -73,10 +73,16 @@ class Program
     {
         string[] messageParts = e.ChatMessage.Message.Split(new char[] { ' ' }, 2);
 
-        bool isFirstMessageThisStream = DBQueryMethods.UpdateChatterDataPlusMaybeTheme(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, Api, messageParts.First(), string.Empty, dbContext));
+        DBQueryMethods.UpdateChatterDataPlusMaybeTheme(new CommandArgs(Client, e.ChatMessage, Connection, NightbotSongRequestClient, Api, messageParts.First(), string.Empty, dbContext));
 
-        if (isFirstMessageThisStream && !e.ChatMessage.IsBroadcaster && BotVariables.ShoutoutAllowlist.Contains(e.ChatMessage.UserId))
-            ShoutoutMethods.EnqueueShoutout(e.ChatMessage.UserId);
+        // If the chatter is a recognized streamer, queue a Twitch shoutout (any message counts; only one succeeds per stream)
+        if (!e.ChatMessage.IsBroadcaster)
+        {
+            Streamer? streamer = dbContext.Streamers.Find(e.ChatMessage.UserId);
+
+            if (streamer != null)
+                ShoutoutMethods.TryEnqueueShoutout(streamer);
+        }
 
         // Open new connection
         Connection.Open();

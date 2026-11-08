@@ -83,20 +83,15 @@ namespace ooceBot.Miscellaneous
             return Convert.ToInt32(tokenTotal.ExecuteScalar());
         }
 
-        public static void HandleBuyins(SqliteConnection connection, string userId, int defaultBuyin)
+        public static long HandleBuyins(SqliteConnection connection, string userId, int defaultBuyin)
         {
             var command = connection.CreateCommand();
             command.Parameters.AddWithValue("@userId", userId);
             command.Parameters.AddWithValue("@defaultBuyin", defaultBuyin);
 
-            command.CommandText = "SELECT TotalTokens FROM ArcadeRecords WHERE Id = @userId";
+            command.CommandText = "UPDATE ArcadeRecords SET TotalTokens = TotalTokens + @defaultBuyin WHERE Id = @userId RETURNING TotalTokens";
 
-            // Check if the total token value is less than the default buy-in and add some tokens for playing
-            if (Convert.ToInt32(command.ExecuteScalar()) < defaultBuyin)
-            {
-                command.CommandText = "UPDATE ArcadeRecords SET TotalTokens = @defaultBuyin WHERE Id = @userId";
-                command.ExecuteNonQuery();
-            }
+            return (long)command.ExecuteScalar();
         }
 
         public static void SetupPlayer(SqliteConnection connection, string userId)

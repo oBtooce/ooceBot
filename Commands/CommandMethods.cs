@@ -82,9 +82,37 @@ namespace ooceBot.Commands
             ArcadeMethods.SetupPlayer(args.Connection, args.ChatMessage.UserId);
 
             // Check balances for player and provide tokens if balance is empty
-            ArcadeMethods.HandleBuyins(args.Connection, args.ChatMessage.UserId, BotVariables.DEFAULT_BUYIN);
+            long totalTokens = ArcadeMethods.HandleBuyins(args.Connection, args.ChatMessage.UserId, BotVariables.DEFAULT_BUYIN);
 
-            string message = $"{args.ChatMessage.DisplayName}, you have been given {BotVariables.DEFAULT_BUYIN} tokens. Use them by typing !play and a number (!play 10) or a percentage (!play 10%) {BotVariables.obtoocBri}";
+            string message = $"{args.ChatMessage.DisplayName}, {BotVariables.DEFAULT_BUYIN} tokens have been added to your account. Use them by typing !play and a number (!play 10) or a percentage (!play 10%) {BotVariables.obtoocBri} Current total: {totalTokens}";
+            args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+        }
+
+        public static void Coords(CommandArgs args)
+        {
+            // Calculate coordinates based on the number of arcseconds.
+            // Latitude is measured between 0° and 90° and longitude is measured between 0° and 180°.
+            // 1 degree equates to 3600 arcseconds, which creates a latitude range of 0 to 324,000 arcseconds and a longitude range of 0 to 648,000 arcseconds.
+            const int LATITUDE_ARCSECOND_MAX = 324000;
+            const int LONGITUDE_ARCSECOND_MAX = 648000;
+
+            int latitudeArcseconds = args.Random.Next(0, LATITUDE_ARCSECOND_MAX + 1);
+            int longitudeArcseconds = args.Random.Next(0, LONGITUDE_ARCSECOND_MAX + 1);
+
+            char latDirection = args.Random.Next(0, 2) == 0 ? 'N' : 'S';
+            char longDirection = args.Random.Next(0, 2) == 0 ? 'E' : 'W';
+
+            int latDegrees = latitudeArcseconds / 3600;
+            int latArcLeftovers = latitudeArcseconds % 3600;
+            int latMinutes = latArcLeftovers / 60;
+            int latSeconds = latArcLeftovers % 60;
+
+            int longDegrees = longitudeArcseconds / 3600;
+            int longArcLeftovers = longitudeArcseconds % 3600;
+            int longMinutes = longArcLeftovers / 60;
+            int longSeconds = longArcLeftovers % 60;
+
+            string message = $"{latDegrees}°{latMinutes}'{latSeconds}\"{latDirection} {longDegrees}°{longMinutes}'{longSeconds}\"{longDirection}";
             args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
@@ -168,7 +196,7 @@ namespace ooceBot.Commands
 
         public static void Event(CommandArgs args)
         {
-            string message = $"Boards of Canada Discography Listen-Along + New Album Reaction - May 29 @ 7 PM EST (Join the DC: {BotVariables.DiscordLink})";
+            string message = $"Salsa Dancing With The Wifey! [Community Challenge Reward] - Saturday, Nov 14 @ 7 PM EST (Join the DC: {BotVariables.DiscordLink})";
             args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
         }
 
@@ -438,27 +466,45 @@ namespace ooceBot.Commands
                 return;
             }
 
-            // Three things to check: there is text; the text translates to a number; and the number is found within the dictionary
-            if (!string.IsNullOrEmpty(args.CommandQuantifier) && int.TryParse(args.CommandQuantifier, out int key) && BotVariables.CustomRewards.TryGetValue(key, out CustomReward reward))
+            if (!string.IsNullOrEmpty(args.CommandQuantifier))                
             {
-                long redemptionPoints = chatterAttendance.PointsForRedemption.Value;
-
-                if (redemptionPoints > reward.Cost)
+                // Make sure that the returned value is an int and that it exists in the dictionary
+                if (int.TryParse(args.CommandQuantifier, out int key) && BotVariables.CustomRewards.TryGetValue(key, out CustomReward reward))
                 {
-                    await AttendanceMethods.RedeemReward(reward, chatterAttendance, args);
+                    long redemptionPoints = chatterAttendance.PointsForRedemption.Value;
 
-                    message = $"{args.ChatMessage.DisplayName}, you redeemed \"{reward.Title}\" for {reward.Cost} points. Your remaining total is {chatterAttendance.PointsForRedemption}. Thanks for hanging out in chat {BotVariables.obtoocBri}";
-                    args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+                    if (redemptionPoints > reward.Cost)
+                    {
+                        await AttendanceMethods.RedeemReward(reward, chatterAttendance, args);
+
+                        message = $"{args.ChatMessage.DisplayName}, you redeemed \"{reward.Title}\" for {reward.Cost} points. Your remaining total is {chatterAttendance.PointsForRedemption}. Thanks for hanging out in chat {BotVariables.obtoocBri}";
+                        args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+                    }
+                    else
+                    {
+                        message = $"{args.ChatMessage.DisplayName}, with a total of {redemptionPoints} points, you do not have enough to afford that reward. Pick something else {BotVariables.obtoocBri}";
+                        args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+                    }
                 }
-                else
+                else if (args.CommandQuantifier.ToLower() == "all")
                 {
-                    message = $"{args.ChatMessage.DisplayName}, with a total of {redemptionPoints} points, you do not have enough to afford that reward. Pick something else {BotVariables.obtoocBri}";
-                    args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
-                }                
+                    if (chatterAttendance.PointsForRedemption > 0)
+                    {
+                        message = $"{args.ChatMessage.DisplayName}, you just used your entire collection of {chatterAttendance.PointsForRedemption} points towards a larger feature. Thanks for your continued support, and keep attending {BotVariables.obtoocBri}";
+
+                        await AttendanceMethods.RedeemAllPoints(chatterAttendance, args);
+                        args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+                    }
+                    else
+                    {
+                        message = $"{args.ChatMessage.DisplayName}, you have no points to redeem. Type !here or !present to work towards gettimg some points {BotVariables.obtoocBri}";
+                        args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
+                    }
+                }
             }
             else
             {
-                message = $"To redeem a reward, please enter a number from 1 to {BotVariables.CustomRewards.Count}. You can find the list of rewards here: {ConfigurationManager.AppSettings["GitHubGistUrl"]}";
+                message = $"To redeem a reward, please enter a number from 1 to {BotVariables.CustomRewards.Count} or 'all' to use all points. You can find the list of rewards here: {ConfigurationManager.AppSettings["GitHubGistUrl"]}";
                 args.Client.SendMessage(args.ChatMessage.Channel, BotVariables.IsYelling ? StreamCommandFunctionality.MakeItLoud(message) : message);
             }
         }

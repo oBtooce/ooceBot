@@ -23,6 +23,7 @@ namespace ooceBot.SQL
             InitializeDapStatsTable(connection);
 
             InitializeMiscellaneousTable(connection);
+            InitializeStreamerTable(connection);
 
             // Close the connection to the DB
             connection.Close();
@@ -167,6 +168,35 @@ namespace ooceBot.SQL
             ";
 
             command.ExecuteNonQuery();
+        }
+
+        /// <summary>
+        /// Creates a table of recognized streamers who get an automatic Twitch shoutout once per stream.
+        /// </summary>
+        /// <param name="connection">The SQLite connection required for DB interaction</param>
+        public static void InitializeStreamerTable(SqliteConnection connection)
+        {
+            var command = connection.CreateCommand();
+
+            // Table creation
+            command.CommandText = @"
+                CREATE TABLE IF NOT EXISTS Streamers (
+                    Id TEXT PRIMARY KEY,
+                    Name TEXT,
+                    LastShoutoutStreamDate TEXT DEFAULT NULL
+                );
+            ";
+
+            command.ExecuteNonQuery();
+
+            // Migrate pre-existing DBs that only have the old ShoutedOutThisStream flag column
+            command.CommandText = "SELECT COUNT(*) FROM pragma_table_info('Streamers') WHERE name = 'LastShoutoutStreamDate'";
+
+            if (Convert.ToInt32(command.ExecuteScalar()) == 0)
+            {
+                command.CommandText = "ALTER TABLE Streamers ADD COLUMN LastShoutoutStreamDate TEXT DEFAULT NULL";
+                command.ExecuteNonQuery();
+            }
         }
     }
 }

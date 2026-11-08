@@ -82,7 +82,7 @@ namespace ooceBot
             return client;
         }
 
-        public static async void UpdateHelixVariables(TwitchAPI api)
+        public static async Task UpdateHelixVariables(TwitchAPI api)
         {
             // Get the broadcaster ID for later use
             var users = await api.Helix.Users.GetUsersAsync(logins: new List<string> { BotVariables.ChannelToJoin });

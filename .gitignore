@@ -365,3 +365,4 @@ FodyWeavers.xsd
 # Creator-specified files
 [Aa]pp.config
 .claude/settings.local.json
+/Database
